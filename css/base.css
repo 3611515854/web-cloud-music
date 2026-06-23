@@ -1,1 +1,203 @@
-﻿
+﻿/* ========================================
+   CSS 变量 - 全局主题配置
+   修改这里可以统一调整整个应用的配色
+   ======================================== */
+:root {
+     --theme-color: #FF8899;
+    --bg: #FFFFFF;
+    --bg-secondary: #F5F5F7;
+    --text: #1D1D1F;
+    --text-secondary: #86868B;
+    --border: #E5E5E7;
+    --sidebar-width: 240px;
+    --radius: 12px;
+    --radius-sm: 8px;
+}
+
+/* ========================================
+   基础重置 - 去除浏览器默认样式
+   ======================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;  /* 让 width/height 包含 padding 和 border */
+}
+
+body {
+    font-family:  -apple-system, 
+    BlinkMacSystemFont, 'Segoe UI','PingFang SC',
+    sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;/*禁止页面滚动*/
+}
+
+/* ========================================
+   整体布局 - Flexbox 两栏布局
+   ======================================== */
+.app {
+    display: flex;
+    height: 100vh;
+}
+
+/* ========================================
+   侧边栏 - 固定宽度，纵向排列
+   ======================================== */
+.sidebar {
+    width: var(--sidebar-width);
+    background: var(--bg-secondary);
+    display: flex;
+    border-right: 1px solid var(--border);
+    flex-direction: column;/*子元素纵向排列*/
+    flex-shrink: 0;/*不允许压缩*/
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 20px;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--theme-color);
+}
+.nav {
+    flex: 1;/*占据剩余空间*/
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.nav-top {
+    flex-shrink: 0;/*顶部导航不压缩*/
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 12px 16px;
+    border: none;/*去除按钮边框*/
+    background: transparent;/*将元素背景设为完全透明*/
+    color: var(--text);
+    font-size: 14px;
+    cursor: pointer;/*控制鼠标悬停在元素上时的指针样式 pointer为手型指针*/
+    border-radius: var(--radius-sm);
+    transition: background 0.2s;
+}
+/*设置鼠标悬停在元素nav-item上的效果*/
+.nav-item:hover {
+    background: rgba(0,0, 0, 0.05);
+}
+/*选择的nav-item显示样式*/
+.nav-item.active {
+    background: rgba(var(--theme-color-rgb), 0.12);
+    color: var(--theme-color);
+    font-weight: 500;
+}
+
+.nav-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 12px 16px;
+}
+
+.playlists-section {
+    flex: 1;
+    overflow-y: auto; /* 歌单列表可滚动 */
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.setting {
+    padding: 12px;
+    border-top: 1px solid var(--border);
+}
+
+.setting-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 16px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s;
+}
+
+.setting-btn:hover {
+    background: rgba(0,0,0,0.05);
+    color: var(--text);
+}
+
+/* ========================================
+   主内容区 - 自适应宽度
+   ======================================== */
+.main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 32px;
+}
+
+.content-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.content-header h1 {
+    font-size: 26px;
+    font-weight: 600;
+}
+/*空状态提醒*/
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    color: var(--text-secondary);
+}
+
+.empty-state .hint {
+    font-size: 13px;
+    margin-top: 4px;
+}
+
+/*歌曲列表*/
+.music-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.music-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.music-item:hover {
+    background: var(--bg-secondary);
+}
