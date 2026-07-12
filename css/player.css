@@ -1,0 +1,51 @@
+﻿/*播放器栏、全屏播放器、歌词面板*/
+
+/* ============================
+   底部播放器栏
+   固定在页面底部，包含进度条、歌曲信息、控制按钮、音量
+   ============================ */
+.player-bar {
+    position: fixed;    /* 固定定位，始终在底部 */
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: var(--player-height); /*底部播放栏高度*/
+    background: var(--bg);
+    border-top: 1px solid var(--border); /*顶部分割线*/
+    display: flex;                  /*flex横向布局*/
+    align-items: center;            /*交叉轴居中（这里主轴为横向布局，交叉轴居中就为垂直居中）*/
+    padding: 0 20px;
+    gap: 16px;  /* 各区域间距 */
+    z-index: 100;  /* 在主内容之上，但低于全屏播放器 */
+}
+/* ============================
+   进度条区域
+   悬浮在播放器顶部的细长条，hover时变粗
+   ============================ */
+.player-progress {
+    position: absolute;  /*相对于.player-bar定位*/
+    top: -3px;          /* 突出播放器顶部3px */
+    left: 0;
+    right: 0;
+    height: 6px;         /* 可点击区域高度（比实际进度条大，方便点击） */
+    cursor: pointer;
+}
+/*进度条轨道*/
+.progress-bar {
+    height: 3px;           /* 默认3px细线 */
+    background: var(--border); /* 灰色轨道 */
+    border-radius: 2px;
+    transition: height 0.2s;  /* 悬停时变粗的过渡 */
+}
+/* hover时进度条变粗，提升交互体验 */
+.player-progress:hover .progress-bar {
+    height: 5px;
+}
+/*进度条填充*/
+.progress-fill {
+    height: 100%;
+    background: var(--theme-color); /* 主题色填充 */
+    border-radius: 2px;
+    width: 0%;    /* 初始宽度0，JS动态更新 */
+    transition: width 0.1s linear; /* 线性过渡，跟上播放进度 */
+}
