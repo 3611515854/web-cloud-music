@@ -49,3 +49,213 @@
     width: 0%;    /* 初始宽度0，JS动态更新 */
     transition: width 0.1s linear; /* 线性过渡，跟上播放进度 */
 }
+/* ============================
+   可点击区域通用样式
+   用于播放器信息区和额外控制区，hover时触发全屏
+   ============================ */
+.clickable-area {
+    cursor: pointer;
+}
+/* ============================
+   播放器歌曲信息区（左侧）
+   封面 + 歌名 + 歌手，占满左侧空间
+   ============================ */
+.player-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;    /* 占满右侧剩余空间 */
+    min-width: 0; /* 防止文字溢出撑开容器 */
+}
+/*歌曲封面缩略图*/
+.player-cover {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, rgba(var(--theme-color-rgb), 0.25), rgba(var(--theme-color-rgb), 0.08)); /* 主题色渐变占位 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0; /*不允许压缩*/
+    overflow: hidden;
+    transition: transform 0.2s; /* hover时轻微放大 */
+}
+/* 封面图片铺满容器 */
+.player-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;     /* 等比裁切填满 */
+}
+/*hover时封面轻微放大效果*/
+.clickable-area:hover .player-cover {
+    transform: scale(1.05);
+}
+/* 歌曲元信息容器 */
+.player-meta {
+    min-width: 0;          /* 防止文字溢出 */
+}
+/*歌曲标题*/
+.player-title {
+    font-weight: 500;
+    white-space: nowrap; /*不换行*/
+    overflow: hidden; /*超出隐藏*/
+    text-overflow: ellipsis; /*超出不封显示省略号*/
+    font-size: inherit;
+}
+/*歌手名*/
+.player-artist {
+    font-size: 0.857em;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ============================
+   播放控制按钮组（中间）
+   上一首、播放/暂停、下一首、播放列表
+   ============================ */
+.player-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+/* 控制按钮基础样式（圆形透明按钮） */
+.control-btn {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    position: relative; /* 为模式图标绝对定位提供基准 */
+}
+
+/* 模式图标 - 绝对定位重叠，opacity过渡实现淡入淡出 */
+.mode-btn svg,
+.mode-btn-large svg {
+    position: absolute;
+    transition: opacity 0.3s ease;
+}
+/* 按钮悬停 - 浅灰色背景 */
+.control-btn:hover {
+    background: var(--bg-secondary);
+}
+/*播放暂停主按钮-主题色圆形 比其他稍微大一点*/
+.control-btn.play-btn {
+    width: 44px;
+    height: 44px;
+    background: var(--theme-color);
+    color: white;
+}
+.control-btn.play-btn:hover {
+    opacity: 0.9;          /* 轻微透明 */
+    transform: scale(1.05); /* 轻微放大 */
+}
+/* ============================
+   右侧额外控制区（时间+音量）
+   右对齐，占满右侧空间
+   ============================ */
+.player-extra {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1; /* 占满右侧空间 */
+    justify-content: flex-end; /* 内容右对齐 */
+}
+/*时间显示*/
+.time-info {
+    font-size: 0.578em;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums; /* 等宽数字，防止时间跳动时文字抖动 */
+}
+/* ============================
+   音量控制区
+   点击音量图标弹出竖向滑块
+   ============================ */
+.volume-wrapper {
+    position: relative;    /* 为弹出层提供定位基准 */
+}
+/* 音量弹出面板（竖向滑块 + 百分比） */
+.volume-popup {
+    position: absolute; 
+    bottom: 48px; /* 在音量按钮上方弹出 */
+    left: 50%;
+    transform: translateX(-50%); /* 水平居中对齐按钮 */
+    background: var(--bg);
+    border-radius: var(--radius);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08); /* 双层阴影，增加立体感 */
+    padding: 16px 12px;
+    display: none; /*默认隐藏*/
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    animation: popIn 0.2s ease; /*弹出动画*/
+    z-index: 110;
+}
+.volume-popup.active {
+    display: flex;         /* 激活时显示 */
+}
+/* 弹出动画 - 从下方淡入+缩放 */
+@keyframes popIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(8px) scale(0.95); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+/*竖向音量滑块容器*/
+.volume-slider-vertical {
+    position: relative;
+    width: 4px;
+    height: 120px;
+    display: flex;
+    justify-content: center;
+}
+/*音量轨道*/
+.volume-track {
+    width: 4px;
+    height: 100%;
+    background: var(--border);
+    border-radius: 2px;
+    position: relative;
+    cursor: pointer;
+}
+/*音量填充条*/
+.volume-fill-vertical {
+    position: absolute;
+    bottom: 0; /* 从底部开始填充 */
+    left: 0;
+    width: 100%;
+    background: var(--theme-color);
+    border-radius: 2px;
+    height: 80%; /* JS动态调整 */
+}
+/* 音量拖动手柄（小圆点） */
+.volume-thumb {
+    position: absolute;
+    bottom: calc(80% - 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 12px;
+    height: 12px;
+    background: var(--theme-color);
+    border-radius: 50%;
+    cursor: grab;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+.volume-thumb:active {
+    cursor: grabbing;      /* 拖拽时变为抓取中手型 */
+}
+/* 音量百分比文字 "80%" */
+.volume-percent {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+}
+/* ============================
+   播放列表弹出面板（队列）
+   显示当前播放队列，可点击切换歌曲
+   ============================ */
