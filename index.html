@@ -33,7 +33,7 @@
                         <input type="text" placeholder="搜索音乐..." id="navSearchInput">
                     </div>
                     <!--本地音乐-->
-                    <button class="nav-item active" data-tab="all">
+                    <button class="nav-item " data-tab="all">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M15 6H3v2h12V6zm0 4H3v2h12v-2zM3 16h8v-2H3v2zM17 6v8.18c-.31-.11-.65-.18-1-.18-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3V8h3V6h-5z"/>
                         </svg>
@@ -48,7 +48,7 @@
                         <span>导入音乐</span>
                     </button>
                     <!--歌单-->
-                    <button class="nav-item" data-tab="playlists">
+                    <button class="nav-item active" data-tab="playlists">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M15 6H3v2h12V6zm0 4H3v2h12v-2zM3 16h8v-2H3v2zM17 6v8.18c-.31-.11-.65-.18-1-.18-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3V8h3V6h-5z"/>
                         </svg>
@@ -91,7 +91,24 @@
         </aside>
         <!--右侧内容区-->
         <main class="main">
-            <div class="content-header" id="tabAll">
+            <!--搜索结果-->
+            <div class="tab-content" id="tabSearch">
+                <div class="content-header">
+                    <div class="header-left">
+                        <!--左侧返回按钮-->
+                        <button class="back-btn" id="searchBackBtn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+                            </svg>
+                        </button>
+                        <h1>搜索结果</h1>
+                    </div>
+                </div>
+                <!--搜索歌曲展示-->
+                <div class="music-list" id="searchResults"></div>
+            </div>
+            <!--本地音乐-->
+            <div class="tab-content " id="tabAll">
                 <div class="content-header">
                     <h1>全部音乐</h1>
                     <div class="search-box">
@@ -102,6 +119,45 @@
                     </div>
                 </div>
                 <div class="music-list" id="musicList"></div>
+            </div>
+            <!--导入音乐-->
+            <div class="tab-content" id="tabImport">
+                <div class="content-header">
+                    <h1>导入音乐</h1>
+                </div>
+            </div>
+            <!--歌单-->
+            <div class="tab-content active" id="tabPlaylists">
+                <div class="content-header" id="playlistHeader">
+                    <h1>歌单</h1>
+                </div>
+            </div>
+            <!--每日推荐-->
+            <div class="tab-content" id="tabDaily">
+                <div class="content-header" id="playlistHeader">
+                    <h1>每日推荐</h1>
+                </div>
+            </div>
+            <!--设置-->
+            <div class="tab-content" id="tabSettings">
+                <div class="content-header">
+                    <div class="header-left">
+                        <!--左侧返回按钮-->
+                        <button class="back-btn" id="settingBackBtn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+                            </svg>
+                        </button>
+                        <!--标题文字-->
+                        <h1>设置</h1>
+                    </div>
+                </div>
+            </div>
+            <!--登录页-->
+            <div class="tab-content" id="tabLogin">
+                <div class="content-header" id="playlistHeader">
+                    <h1>登录</h1>
+                </div>
             </div>
         </main>
         <!--底部播放栏-->
@@ -205,5 +261,12 @@
             </div>
         </div>
     </div>
+    <!--导入script-->
+    <script src="js/state.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/persistence.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/player.js"></script>
+    <script src="js/ui.js"></script>
 </body>
 </html>

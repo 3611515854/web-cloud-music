@@ -1,1 +1,101 @@
 ﻿/*主内容区：音乐列表、歌单网格、按钮*/
+/* ============================
+   主内容区容器
+   填满侧边栏右侧剩余空间，内部可独立滚动
+   ============================ */
+.main  {
+    flex: 1;            /* 占满剩余宽度 */
+    overflow-y: auto;   /* 内容超出时纵向滚动 */
+    padding: 24px 32px; /* 内边距，留出呼吸感 */
+}
+/* ============================
+   标签页内容区
+   所有标签页默认隐藏，只有.active的才显示
+   切换时带淡入动画
+   ============================ */
+.tab-content {
+    display: none;              /* 默认隐藏 */
+    animation: fadeIn 0.2s ease;/* 显示时淡入动画 */
+}
+
+.tab-content.active {
+    display: block; /* 激活状态才显示 */
+}
+/* 淡入动画 - 从下方8px处淡入 */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+/* ============================
+   内容区顶部标题栏
+   左侧标题 + 右侧操作按钮/搜索框，两端对齐
+   ============================ */
+.content-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* 左右两端对齐 */
+    margin-bottom: 24px; /* 与下方内容间距 */
+}
+/*标题*/
+.content-header h1 {
+    font-size: 1.857em; /* 26px，页面主标题 */
+    font-weight: 600;
+    white-space: nowrap; /* 标题不换行 */
+}
+/* 标题栏左侧（返回按钮 + 标题） */
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+/* 返回按钮 - 圆形灰色按钮，hover时左移2px暗示"返回" */
+.back-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: var(--bg-secondary);
+    color: var(--text);
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.back-btn:hover {
+    background: var(--border);
+    transform: translateX(-2px); /* 轻微左移，暗示"返回"方向 */
+}
+/* ============================
+   搜索框（本地音乐内容区右上角）
+   胶囊形，包含搜索图标 + 输入框
+   ============================ */
+.search-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-full);
+    border: 1px solid transparent; /* 透明边框，焦点时变色 */
+    width: 240px;
+    transition: border-color 0.2s;
+}
+/* 搜索框聚焦时 - 边框变为主题色 */
+.search-box:focus-within {
+    border-color: var(--theme-color);
+}
+/* 搜索图标灰色，不允许缩小 */
+.search-box svg {
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+/* 搜索输入框 */
+.search-box input {
+    border:none; /* 去掉边框，由父容器提供 */
+    background: transparent;
+    outline: none;          /* 去掉焦点轮廓 */
+    font-size: 0.929em;    /* 13px */
+    width: 100%;            /* 填满剩余空间 */
+}

@@ -107,7 +107,7 @@
     background: rgba(0,0,0,0.05);
 }
 /* 导航按钮激活状态 - 主题色高亮 */
-.nav-item:active {
+.nav-item.active {
     background: rgba(var(--theme-color-rgb),0.12); /* 主题色12%透明度背景 */
     color: var(--theme-color);  /* 文字变为主题色 */
     font-weight: 500;           /* 稍微加粗 */
