@@ -125,6 +125,27 @@
                 <div class="content-header">
                     <h1>导入音乐</h1>
                 </div>
+                <!--导入区域-->
+                <div class="import-area">
+                    <div class="drop-zone" id="dropZone">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
+                        </svg>
+                        <p>选择音乐文件夹</p>
+                        <p class="hint">点击选择包含音乐的目录，自动扫描匹配封面和歌词</p>
+                    </div>
+                    <!--扫描状态-->
+                    <div class="scan-status" id="scanStatus" style="display: none;" >
+                        <div class="scan-info">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
+                            </svg>
+                            <span id="scanPath"></span>
+                        </div>
+                        <div class="scan-result" id="scanResult"></div>
+                    </div>
+                    <div class="import-list" id="importList"></div>
+                </div>
             </div>
             <!--歌单-->
             <div class="tab-content active" id="tabPlaylists">
@@ -143,7 +164,7 @@
                 <div class="content-header">
                     <div class="header-left">
                         <!--左侧返回按钮-->
-                        <button class="back-btn" id="settingBackBtn">
+                        <button class="back-btn" id="settingsBackBtn">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
                             </svg>
@@ -151,6 +172,22 @@
                         <!--标题文字-->
                         <h1>设置</h1>
                     </div>
+                </div>
+                <!--设置页面框架-->
+                <div class="settings-panel">
+                    <!--api设置-->
+                    <div class="settings-group">
+                        <h3>API设置</h3>
+                        <p class="settings-desc">点击输入API代理服务器地址</p>
+                        <input class="api-input">
+                    </div>
+                    <!--账号登录-->
+                    <div class="settings-group">
+                        <h3>账号登录</h3>
+                        <p class="settings-desc">点击登录按钮登录网易云账号</p>
+                        <button class="login-btn">登录</button>
+                    </div>
+                    <!--主题色设置-->
                 </div>
             </div>
             <!--登录页-->

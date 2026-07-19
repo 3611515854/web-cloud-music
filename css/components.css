@@ -1,1 +1,85 @@
 ﻿/*设置面板、弹窗、上下文菜单、登录页*/
+.settings-panel {
+    max-width: 520px;
+}
+
+.settings-group {
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+}
+
+.settings-group:last-child {
+    border-bottom: none;
+}
+
+.settings-group h3 {
+    font-size: 1.143em;
+    font-weight: 600;
+    margin-bottom: 4px;
+    white-space: nowrap;
+}
+
+.settings-desc {
+    font-size: 0.929em;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+}
+
+.api-input {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-full);
+    gap: 8px;
+    padding: 8px 16px;
+    border:  1px solid transparent;
+    width: 240px;
+    transition: border-color 0.2s;
+}
+
+.api-input:focus-within {
+    border-color: var(--theme-color);
+}
+
+
+.login-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 32px;
+    background: var(--theme-color);
+    color: rgb(0, 0, 0);
+    border: none;
+    border-radius: var(--radius-full);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.login-btn:hover { opacity: 0.9; }
+
+/*歌曲右侧更多按钮*/
+.more-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0; /*默认亮度为0，也就是不显示*/
+    transition: all 0.15s;/*控制变化速度*/
+    flex-shrink: 0;
+}
+
+.music-item:hover .more-btn {
+    opacity: 1;
+}
+
+.more-btn:hover {
+    background: var(--bg-secondary);
+    color: var(--text);
+}

@@ -99,3 +99,206 @@
     font-size: 0.929em;    /* 13px */
     width: 100%;            /* 填满剩余空间 */
 }
+/* ============================
+   导入音乐区域
+   拖拽区 + 扫描状态 + 导入列表
+   ============================ */
+.import-area {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+/* 拖拽选择区 - 虚线边框，可点击选择文件夹 */
+.drop-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+/* 拖拽悬停/拖入文件时 - 边框变主题色 */
+.drop-zone:hover,
+.drop-zone.dragover {
+    border-color: var(--theme-color);
+    background: rgba(var(--theme-color-rgb), 0.04); /* 主题色4%背景 */
+}
+
+.drop-zone svg {
+    margin-bottom: 12px;
+    color: var(--text-secondary);
+}
+
+.drop-zone p {
+    color: var(--text-secondary);
+}
+
+.drop-zone .hint {
+    font-size: 0.857em;
+    margin-top: 4px;
+    opacity: 0.7;
+}
+/* 扫描状态信息（选中文件夹后显示） */
+.scan-status {
+    padding: 16px 20px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius);
+}
+.scan-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+.scan-info svg {
+    color: var(--theme-color);
+    flex-shrink: 0;
+}
+/* 扫描路径（文字过长时省略） */
+.scan-info span {
+    font-size: 0.929em;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.scan-result {
+    font-size: 0.929em;
+    color: var(--text);
+}
+
+/* ============================
+   单个音乐项（歌曲行）
+   封面 + 歌名/歌手 + 播放指示器 + 更多按钮
+   ============================ */
+.music-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.music-item:hover {
+    background: var(--bg-secondary);
+}
+
+/*正在播放的歌曲样式*/
+.music-item.playing {
+    background: rgba(var(--theme-color-rgb), 0.08);
+}
+/*封面*/
+.music-item .cover {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, rgba(var(--theme-color-rgb), 0.25), rgba(var(--theme-color-rgb), 0.08)); /* 主题色渐变占位 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;         /* 不允许被压缩 */
+    overflow: hidden;
+}
+
+.music-item .cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.music-item .info {
+    flex: 1;
+    min-width: 0;
+}
+
+.music-item .title {
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: inherit;
+}
+
+.music-item .artist {
+    font-size: 0.857em;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/*歌曲时长*/
+.music-item .duration {
+    font-size: 0.857em;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+/* ============================
+   播放指示器（均衡器动画）
+   三根竖线跳动，默认隐藏，当前播放歌曲显示
+   ============================ */
+.music-item .playing-indicator {
+    display: none;          /* 默认隐藏 */
+    width: 16px;
+}
+
+/* 正在播放的歌曲显示指示器 */
+.music-item.playing .playing-indicator {
+    display: flex;
+    gap: 2px;
+    align-items: flex-end;  /* 底部对齐 */
+    height: 16px;
+}
+
+/* 每根柱子 */
+.music-item.playing .playing-indicator span {
+    width: 3px;
+    background: var(--theme-color);
+    border-radius: 2px;
+    animation: eq 0.8s ease-in-out infinite; /* 均衡器跳动动画 */
+}
+
+/* 三根柱子不同高度和延迟，模拟音乐跳动 */
+.music-item.playing .playing-indicator span:nth-child(1) { height: 8px; animation-delay: 0s; }
+.music-item.playing .playing-indicator span:nth-child(2) { height: 14px; animation-delay: 0.15s; }
+.music-item.playing .playing-indicator span:nth-child(3) { height: 6px; animation-delay: 0.3s; }
+
+/* 均衡器动画 - 缩放模拟跳动 */
+@keyframes eq {
+    0%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(0.4); }
+}
+
+/* ============================
+   空状态提示
+   当列表无内容时居中显示
+   ============================ */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;     /* 大量上下内边距 */
+    color: var(--text-secondary);
+}
+
+.empty-state svg {
+    margin-bottom: 16px;
+    opacity: 0.2;           /* 图标很淡 */
+}
+
+.empty-state p {
+    font-size: 1.071em;     /* 15px */
+    margin-bottom: 4px;
+}
+
+.empty-state .hint {
+    font-size: 0.929em;     /* 13px */
+    opacity: 0.6;           /* 提示文字更淡 */
+}
