@@ -149,6 +149,15 @@ async function pickDirectory() {
 }
 
 /* ============================
+   工具函数 - 文件大小格式化
+   ============================ */
+function fmtSize(b) {
+    if (b < 1024) return b + ' B';
+    if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+    return (b / 1048576).toFixed(1) + ' MB';
+}
+
+/* ============================
    渲染本地音乐列表
    支持搜索过滤，显示封面/歌名/歌手/播放指示器
    ============================ */
@@ -198,7 +207,11 @@ document.getElementById('searchInput').addEventListener('input', renderMusicList
    ============================ */
 
 async function init() {
-
+    //加载持久化数据
+    await loadAllSongs();// 从IndexedDB加载所有歌曲
+    state.playQueue = [...state.musicList]; // 初始化播放队列
+    //渲染初始页面
+    renderMusicList();        // 渲染本地音乐列表
     //绑定事件
     setupImport();// 导入音乐
     
