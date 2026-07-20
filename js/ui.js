@@ -167,7 +167,7 @@ function renderMusicList() {
     const list = document.getElementById('musicList');
     //根据搜索框内容过滤
     const q = document.getElementById('searchInput').value.toLowerCase();
-    const filtered = state.musicList.filter(m => !q || m.title.toLowerCase().includes(q) || m.artist.toLowerCase().includes(q));
+    const filtered = state.musicList.filter(m => !q || m.title.toLowerCase().includes(q) || m.artist.toLowerCase().includes(q));//从musicList里面筛选，搜索框为空或者歌曲标题或歌曲名包含关键词（忽略大小写），m 是遍历到的每一首歌曲对象，箭头函数返回 true（保留）或 false（过滤掉）
     //空状态
     if (filtered.length === 0) {
         list.innerHTML =   `<div class="empty-state"><svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55C7.79 13 6 14.79 6 17s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg><p>暂无音乐</p><p class="hint">点击"导入音乐"添加本地文件</p></div>`
@@ -186,9 +186,9 @@ function renderMusicList() {
     list.querySelectorAll('.music-item').forEach(item => {
         item.addEventListener('click', (e) => {
             if(e.target.closest('.more-btn')) return ;//点击更多按钮不播放
-            const song = state.musicList.find(s => s.id == item.dataset.id);
+            const song = state.musicList.find(s => s.id == item.dataset.id);//找到歌曲对象
             if (song) {
-                state.playQueue = [...filtered];
+                state.playQueue = [...filtered];//设置播放列表为当前列表
                 playSong(song);
             }
         })
@@ -214,7 +214,9 @@ async function init() {
     renderMusicList();        // 渲染本地音乐列表
     //绑定事件
     setupImport();// 导入音乐
-    
+    setupControls();  // 播放控制按钮
+    setupProgress();          // 进度条
+    await loadPlayerState();
 }
 
 init();
