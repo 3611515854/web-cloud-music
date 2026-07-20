@@ -203,3 +203,62 @@ async function playPrev() {
     // idx-1 如果为-1则变成 queue.length-1（最后一首）
     await playSong(queue[(idx - 1 + queue.length) % queue.length]);
 }
+/* ============================
+   音量控制
+   竖向滑块 + 拖拽 + 持久化
+   ============================ */
+function setupVolume() {
+    const volumeBtn = document.getElementById('volumeBtn');
+    const volumePopup = document.getElementById('volumePopup');
+    const volumeTrack = document.getElementById('volumeTrack');
+    const volumeFillVertical = document.getElementById('volumeFillVertical');
+    const volumeThumb = document.getElementById('volumeThumb');
+    const volumePercent = document.getElementById('volumePercent');
+    const volIconOn = volumeBtn.querySelector('.vol-icon-on');
+    const volIconOff = volumeBtn.querySelector('.vol-icon-off');
+
+    // 从localStorage恢复上次音量（默认80%）
+    const sacedVolume = parseFloat(localStorage.getItem('mp_volume') || '0.5');
+    audio.volume = sacedVolume;
+    updateVolumeUI(sacedVolume);
+
+    //点击音量按钮弹出面板
+    volumeBtn.addEventListener('click',(e)=> { e.stopPropagation();volumePopup.classList.toggle('active');})
+
+    //点击音量按钮外关闭弹窗
+    document.addEventListener('click', (e) => {
+        if( !e.target.closest('.volume-wrapper')) {
+            volumePopup.classList.remove('active');
+        }
+    })
+    // 点击音量轨道直接设置音量（竖向：底部=100%，顶部=0%）
+    volumeTrack.addEventListener('click', (e)=> {
+        const rect = volumeTrack.getBoundingClientRect();
+        setVolume(Math.max(0, Math.min(1, 1 - (e.clientY - rect.top) / rect.height)));
+    })
+    // ---- 拖拽音量手柄 ----
+    let dragging = false;
+    volumeThumb.addEventListener('mousedown', (e) => { e.preventDefault(); dragging = true; });
+    document.addEventListener('mousemove', (e) => {
+        if (!dragging) return;
+        const rect = volumeTrack.getBoundingClientRect();
+        setVolume(Math.max(0, Math.min(1, 1 - (e.clientY - rect.top) / rect.height)));
+    });
+    document.addEventListener('mouseup', () => { dragging = false; });
+    // 设置音量并更新UI
+    function setVolume(v) {
+        audio.volume = v;
+        updateVolumeUI(v);
+        localStorage.setItem('mp_volume', v);  // 持久化音量
+    }
+
+    // 更新音量滑块UI（填充高度、手柄位置、百分比文字、图标切换）
+    function updateVolumeUI(v) {
+        const pct = v * 100;
+        volumeFillVertical.style.height = pct + '%';
+        volumeThumb.style.bottom = `calc(${pct}% - 6px)`;  // 手柄位置
+        volumePercent.textContent = Math.round(pct) + '%';
+        volIconOn.style.display = v === 0 ? 'none' : 'block';   // 音量>0显示正常图标
+        volIconOff.style.display = v === 0 ? 'block' : 'none';  // 音量=0显示静音图标
+    }
+}

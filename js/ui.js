@@ -216,6 +216,9 @@ async function init() {
     setupImport();// 导入音乐
     setupControls();  // 播放控制按钮
     setupProgress();          // 进度条
+    setupVolume();            // 音量控制
+
+
     await loadPlayerState();
 }
 
