@@ -58,7 +58,7 @@ if (settingsBtn) {
 // 返回按钮、登录按钮、登录返回按钮
 document.getElementById('settingsBackBtn').addEventListener('click', () => switchTab(state.previousTab || 'all'));
 document.querySelector('.login-btn').addEventListener('click', () => { state.previousTab = 'settings'; switchTab('login'); });
-//document.getElementById('loginBackBtn').addEventListener('click', () => { stopQrLogin(); switchTab(state.previousTab || 'all'); });
+document.getElementById('loginBackBtn').addEventListener('click', () => { /*stopQrLogin();*/ switchTab(state.previousTab || 'all'); });
 
 /* ============================
    本地音乐导入功能
@@ -213,10 +213,12 @@ async function init() {
     //渲染初始页面
     renderMusicList();        // 渲染本地音乐列表
     //绑定事件
+    setupQueue();             // 播放队列
     setupImport();// 导入音乐
     setupControls();  // 播放控制按钮
     setupProgress();          // 进度条
     setupVolume();            // 音量控制
+    
 
 
     await loadPlayerState();

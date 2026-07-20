@@ -259,3 +259,148 @@
    播放列表弹出面板（队列）
    显示当前播放队列，可点击切换歌曲
    ============================ */
+.queue-wrapper {
+    position: relative;
+}
+/*播放列表弹出面板*/
+.queue-popup {
+    position: absolute;
+    bottom: 48px;
+    right: 0;
+    width: 320px;
+    max-height: 400px;
+    background: var(--bg);
+    border-radius: var(--radius);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08);
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    animation: popUp 0.2s ease;
+    z-index: 110;
+}
+/* 弹出动画 - 向上淡入 */
+@keyframes popUp {
+    from { opacity: 0; transform: translateY(8px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.queue-popup.active {
+    display: flex;
+}
+
+/* 播放列表头部（"播放列表" + 歌曲数） */
+.queue-header {
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--border); /*底部分割线 */
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.queue-title {
+    font-weight: 600;
+    font-size: 0.929em;
+}
+
+.queue-count {
+    font-size: 0.786em;    /* 11px */
+    color: var(--text-secondary);
+}
+/*播放列表内容区*/
+.queue-list {
+    flex: 1;
+    overflow: auto;
+    padding: 6px;
+}
+
+/*单个列表音乐项*/
+.queue-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.queue-item:hover {
+    background: var(--bg-secondary);
+}
+
+/* 当前播放的歌曲 - 主题色背景 */
+.queue-item.playing {
+    background: rgba(var(--theme-color-rgb), 0.1);
+}
+
+/* 队列项封面 */
+.queue-item .q-cover {
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, rgba(var(--theme-color-rgb), 0.25), rgba(var(--theme-color-rgb), 0.08));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.queue-item .q-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* 队列项歌曲信息 */
+.queue-item .q-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.queue-item .q-title {
+    font-size: 0.929em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.queue-item .q-artist {
+    font-size: 0.786em;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 当前播放歌曲标题变为主题色 */
+.queue-item.playing .q-title {
+    color: var(--theme-color);
+}
+
+/* 队列项右侧播放动画条（三条竖线） */
+.queue-item .q-playing {
+    display: none;         /* 默认隐藏 */
+    gap: 2px;
+    align-items: flex-end;
+    height: 14px;
+    flex-shrink: 0;
+}
+
+/* 当前播放歌曲显示动画 */
+.queue-item.playing .q-playing {
+    display: flex;
+}
+
+/* 动画条每根柱子 */
+.queue-item .q-playing span {
+    width: 2px;
+    background: var(--theme-color);
+    border-radius: 1px;
+    animation: eq 0.8s ease-in-out infinite; /* 均衡器动画 */
+}
+
+/* 三根柱子不同高度和延迟，模拟均衡器跳动 */
+.queue-item .q-playing span:nth-child(1) { height: 6px; animation-delay: 0s; }
+.queue-item .q-playing span:nth-child(2) { height: 10px; animation-delay: 0.15s; }
+.queue-item .q-playing span:nth-child(3) { height: 4px; animation-delay: 0.3s; }

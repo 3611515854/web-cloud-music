@@ -262,3 +262,67 @@ function setupVolume() {
         volIconOff.style.display = v === 0 ? 'block' : 'none';  // 音量=0显示静音图标
     }
 }
+/* ============================
+   播放队列面板
+   底部栏的队列弹出面板
+   ============================ */
+function setupQueue() {
+    const queueBtn = document.getElementById('queueBtn');
+    const queuePopup = document.getElementById('queuePopup');
+
+    // 点击队列按钮切换面板
+    queueBtn.addEventListener('click', (e) => { 
+        e.stopPropagation(); 
+        renderQueue(); 
+        queuePopup.classList.toggle('active'); 
+    });
+    // 点击面板外部关闭（底部栏和全屏播放器的队列面板都关闭）
+    document.addEventListener('click', (e) => {
+        if(!e.target.closest('.queue-wrapper')) {
+            document.getElementById('queuePopup').classList.remove('active');
+            //document.getElementById('queuePopupLarge').classList.remove('active');
+        }
+    })
+}
+/* ============================
+   渲染播放队列列表
+   同时更新底部栏和全屏播放器的队列面板
+   ============================ */
+function renderQueue() {
+    const songs = state.playQueue;
+    const countText = songs.length + '首歌';
+    document.getElementById('queueCount').textContent = countText;
+    //document.getElementById('queueCountLarge').textContent = countText;
+
+    //空列表显示
+    if  (songs.length === 0) {
+        const empty = '<div style="padding:24px;text-align:center;color:var(--text-secondary);font-size:0.857em">暂无歌曲</div>';
+        document.getElementById('queueList').innerHTML = empty;
+        document.getElementById('queueListLarge').innerHTML = empty;
+        return;
+    }
+    //生成队列歌曲列表html
+    const html = songs.map(s =>`
+        <div class="queue-item ${state.currentSong?.id === s.id || state.currentSong?.neteaseId === s.id ? 'playing' : ''}" data-id="${s.id}">
+            <div class="q-cover">${s.coverUrl ? `<img src="${s.coverUrl}" loading="lazy" onerror="this.style.display='none'">` : `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55C7.79 13 6 14.79 6 17s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>`}</div>
+            <div class="q-info"><div class="q-title">${s.title}</div><div class="q-artist">${s.artist}</div></div>
+            <div class="q-playing"><span></span><span></span><span></span></div>
+        </div>`).join('');
+    //同时更新两个队列面板
+    document.getElementById('queueList').innerHTML = html;
+    //document.getElementById('queueListLarge').innerHTML = html;
+
+    //绑定点击事件
+    document.querySelectorAll('.queue-item').forEach(item =>{
+        item.addEventListener('click', ()=>{
+            const song = state.playQueue.find(s => s.id == item.dataset.id);
+            if (song) playSong(song);
+            renderQueue();  // 刷新队列（更新高亮）
+        })
+    })
+    // 自动滚动到当前播放歌曲
+    if (state.currentSong) {
+        const active = document.querySelector('.queue-item.playing');
+        if (active) active.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+}
