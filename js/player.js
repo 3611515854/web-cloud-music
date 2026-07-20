@@ -86,7 +86,11 @@ function updatePlayingState() {
 function setupControls() {
     //播放暂停
     document.getElementById('playBtn').addEventListener('click',togglePlay);
+    //上一首/下一首
+    document.getElementById('nextBtn').addEventListener('click',playNext);
+    document.getElementById('prevBtn').addEventListener('click', playPrev);
 }
+
 /* ============================
    进度条和时间更新
    监听audio的timeupdate事件，实时更新进度条和时间显示
@@ -169,4 +173,33 @@ async function togglePlay() {
     }
     updatePlayButtons();
     //TODO: updateAlbumCover();    // 更新全屏封面动画
+}
+/* ============================
+   播放下一首
+   根据播放模式决定下一首歌曲
+   ============================ */
+async function playNext() {
+    const queue = state.playQueue;
+    if (queue.length === 0) return;
+
+    //TODO:单曲循环
+    //TODO:随机播放
+
+    //顺序播放下一首
+    const curId = state.currentSong?.neteaseId || state.currentSong?.id;
+    const idx = queue.findIndex(s => (s.neteaseId || s.id) === curId);
+    await playSong(queue[(idx + 1) % queue.length]);//% queue.length 是必须的，否则播放到最后一首时会报错。
+
+}
+/* ============================
+   播放上一首
+   循环到列表末尾
+   ============================ */
+async function playPrev() {
+    const queue = state.playQueue;
+    if (queue.length === 0) return;
+    const curId = state.currentSong?.neteaseId || state.currentSong?.id;
+    const idx = queue.findIndex(s => (s.neteaseId || s.id) === curId);
+    // idx-1 如果为-1则变成 queue.length-1（最后一首）
+    await playSong(queue[(idx - 1 + queue.length) % queue.length]);
 }
