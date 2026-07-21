@@ -362,3 +362,22 @@ function updateModeBtn() {
         else btn.querySelector('.mode-shuffle').style.opacity = '1';
     })
 }
+
+/* ============================
+   播放器栏交互
+   点击播放器栏打开全屏播放器（避开控制按钮区域）
+   ============================ */
+function setupPlayerBar() {
+    const playerBar = document.getElementById('playerBar');
+    const fullscreen = document.getElementById('fullscreenPlayer');
+    // 点击播放器栏 → 打开全屏播放器
+    // 排除控制按钮、音量、队列区域的点击，避免误触
+    playerBar.addEventListener('click', (e) => {
+        if(e.target.closest('.player-controls') || e.target.closest('.control-btn')) return;
+        //if (!state.currentSong) return;  // 未播放任何歌曲时不打开
+        fullscreen.classList.add('active');
+        //updateAlbumCover();
+    })
+     // 关闭全屏播放器
+    document.getElementById('closePlayer').addEventListener('click', () => fullscreen.classList.remove('active'));
+}

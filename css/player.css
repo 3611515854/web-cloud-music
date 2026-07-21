@@ -404,3 +404,65 @@
 .queue-item .q-playing span:nth-child(1) { height: 6px; animation-delay: 0s; }
 .queue-item .q-playing span:nth-child(2) { height: 10px; animation-delay: 0.15s; }
 .queue-item .q-playing span:nth-child(3) { height: 4px; animation-delay: 0.3s; }
+
+
+/* ============================
+   全屏播放器
+   覆盖整个页面，从底部滑入动画
+   ============================ */
+.fullscreen-player {
+    position: flixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 200;          /* 高于播放器栏(100) */
+    pointer-events: none; /* 默认不响应点击，透出下层 */
+}
+
+.fullscreen-player.active {
+    pointer-events: all;   /* 激活时响应点击 */
+}
+
+/* 全屏播放器内部内容（滑入动画的载体） */
+.fullscreen-player-inner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    transform: translateY(100%);/* 初始在屏幕下方（不可见） */
+    transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1); /* 贝塞尔曲线，平滑回弹感 */
+}
+
+/* 激活时滑入屏幕 */
+.fullscreen-player.active .fullscreen-player-inner {
+    transform: translateY(0); /* 滑到原位 */
+}
+
+/* 左上角关闭按钮 */
+.close-btn {
+    position: absolute;
+    top: 20px;
+    left: 24px;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: rgba(0,0,0,0.06); /* 半透明灰色背景 */
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    transition: all 0.2s;
+}
+
+.close-btn:hover {
+    background: rgba(0,0,0,0.1);
+    transform: scale(1.05);
+}
