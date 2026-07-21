@@ -218,9 +218,8 @@ async function init() {
     setupControls();  // 播放控制按钮
     setupProgress();          // 进度条
     setupVolume();            // 音量控制
+    updateModeBtn();          // 播放模式按钮
     
-
-
     await loadPlayerState();
 }
 

@@ -89,6 +89,9 @@ function setupControls() {
     //上一首/下一首
     document.getElementById('nextBtn').addEventListener('click',playNext);
     document.getElementById('prevBtn').addEventListener('click', playPrev);
+    //播放模式切换
+    document.getElementById('modeBtn').addEventListener('click',togglePlayMode);
+
 }
 
 /* ============================
@@ -182,8 +185,16 @@ async function playNext() {
     const queue = state.playQueue;
     if (queue.length === 0) return;
 
-    //TODO:单曲循环
-    //TODO:随机播放
+    //单曲循环
+    if(state.playMode === 1) {
+        await playSong(state.currentSong);
+        return;
+    }
+    //随机播放
+    if(state.playMode === 2) {
+        await playSong(queue[Math.floor(Math.random()* queue.length)]);
+        return;
+    }
 
     //顺序播放下一首
     const curId = state.currentSong?.neteaseId || state.currentSong?.id;
@@ -325,4 +336,29 @@ function renderQueue() {
         const active = document.querySelector('.queue-item.playing');
         if (active) active.scrollIntoView({ block: 'center', behavior: 'smooth' });
     }
+}
+/* ============================
+   播放模式切换
+   0→1→2→0 循环（顺序→单曲→随机→顺序）
+   ============================ */
+function togglePlayMode() {
+    state.playMode = (state.playMode +1) % 3;
+    updateModeBtn();
+    if( state.currentSong) savePlayerState();//保存播放模式
+}
+/* ============================
+   更新播放模式按钮图标
+   通过opacity切换三个叠加的SVG图标（带过渡动画）
+   ============================ */
+function updateModeBtn() {
+    document.querySelectorAll('.mode-btn, .mode-btn-large').forEach(btn => {
+        btn.title = MODE_NAMES[state.playMode];
+        btn.querySelectorAll('svg').forEach(s => {
+            s.style.opacity = '0'
+        });//全部隐藏
+        // 只显示当前模式的图标
+        if (state.playMode === 0) btn.querySelector('.mode-seq').style.opacity = '1';
+        else if (state.playMode === 1) btn.querySelector('.mode-single').style.opacity = '1';
+        else btn.querySelector('.mode-shuffle').style.opacity = '1';
+    })
 }
