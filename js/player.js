@@ -1,4 +1,24 @@
 ﻿//播放器核心：控制、进度、音量、队列、歌词
+
+/* ============================
+   播放器栏交互
+   点击播放器栏打开全屏播放器（避开控制按钮区域）
+   ============================ */
+function setupPlayerBar() {
+    const playerBar = document.getElementById('playerBar');
+    const fullscreen = document.getElementById('fullscreenPlayer');
+    // 点击播放器栏 → 打开全屏播放器
+    // 排除控制按钮、音量、队列区域的点击，避免误触
+    playerBar.addEventListener('click', (e) => {
+        if(e.target.closest('.player-controls') || e.target.closest('.control-btn')) return;
+        //if (!state.currentSong) return;  // 未播放任何歌曲时不打开
+        fullscreen.classList.add('active');
+        updateAlbumCover();
+    })
+     // 关闭全屏播放器
+    document.getElementById('closePlayer').addEventListener('click', () => fullscreen.classList.remove('active'));
+}
+
 /* ============================
    核心播放函数 - 播放指定歌曲
    设置音频源、更新所有UI、保存状态
@@ -29,9 +49,9 @@ async function playSong(song) {
     //更新所有UI
     updatePlayerInfo();      // 更新底部栏歌名/歌手/封面
     updatePlayButtons();     // 更新播放/暂停图标
-    //updateAlbumCover();      // 更新全屏播放器封面
+    updateAlbumCover();      // 更新全屏播放器封面
     renderMusicList();       // 重新渲染歌曲列表（高亮当前歌曲）
-    //renderQueue();           // 更新播放队列面板
+    renderQueue();           // 更新播放队列面板
     updatePlayingState();    // 给当前歌曲行添加 .playing 类
     //loadLyricsFromText(song.lrcText);  // 解析并显示歌词
     savePlayerState();       // 保存播放状态到localStorage（刷新恢复用）
@@ -46,14 +66,31 @@ function updatePlayerInfo() {
     document.getElementById('playerTitle').textContent = s ? s.title : '未播放';
     document.getElementById('playerArtist').textContent = s ? s.artist : '选择音乐进行播放';
     //全屏播放器
-    //TODO:
-
+    document.getElementById('songTitle').textContent = s ? s.title : '未播放';
+    document.getElementById('songArtist').textContent = s ? s.artist : '选择音乐进行播放';
     //底部栏封面
     const cover = document.getElementById('playerCover');
     if( s && s.coverUrl) {
         cover.innerHTML = `<img src="${s.coverUrl}" onerror="this.style.display='none'">`;
     } else {
         cover.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55C7.79 13 6 14.79 6 17s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>`;
+    }
+}
+/* ============================
+   更新全屏播放器的专辑封面
+   有封面显示图片，无封面显示默认音符图标
+   ============================ */
+function updateAlbumCover() {
+    const cover = document.getElementById('albumCover');
+    if (state.currentSong && state.currentSong.coverUrl) {
+        // 将封面URL参数替换为800x800（全屏需要更高清）
+        const largeCover = state.currentSong.coverUrl.replace(/param=\d+y\d+/, '/800x800');
+        cover.innerHTML = `<img src="${largeCover}" onerror="this.style.display='none'">`;
+        cover.classList.add('playing'); // 添加旋转动画
+    } else {
+        // 无封面时显示默认SVG图标
+        cover.innerHTML = `<svg width="80" height="80" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55C7.79 13 6 14.79 6 17s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>`;
+        cover.classList.remove('playing');
     }
 }
 
@@ -86,11 +123,63 @@ function updatePlayingState() {
 function setupControls() {
     //播放暂停
     document.getElementById('playBtn').addEventListener('click',togglePlay);
+    document.getElementById('playBtnLarge').addEventListener('click',togglePlay);
     //上一首/下一首
     document.getElementById('nextBtn').addEventListener('click',playNext);
     document.getElementById('prevBtn').addEventListener('click', playPrev);
+    document.getElementById('nextBtnLarge').addEventListener('click',playNext);
+    document.getElementById('prevBtnLarge').addEventListener('click', playPrev);
     //播放模式切换
     document.getElementById('modeBtn').addEventListener('click',togglePlayMode);
+    document.getElementById('modeBtnLarge').addEventListener('click', togglePlayMode);
+    // ---- 音质选择弹出面板（全屏播放器内） ----
+    const qualBtn = document.getElementById('qualBtn');
+    const qualPopup = document.getElementById('qualityPopup');
+    // 点击音质按钮切换弹出面板
+    qualBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); //阻止冒泡，避免触发document的关闭逻辑
+        qualPopup.classList.toggle('active');
+    })
+    // 点击面板外部关闭
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.control-quality')) qualPopup.classList.remove('active');
+    });
+     // 每个音质选项的点击事件（标准/较高/极高/无损/Hi-Res）
+    qualPopup.querySelectorAll('.quality-item').forEach(item => {
+        item.addEventListener('click', async () => {
+            // 更新所有音质选项的激活状态
+            document.querySelectorAll('.quality-item').forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+            // 保存设置
+            state.settings.quality = item.dataset.level;
+            qualBtn.textContent = item.textContent;
+            qualPopup.classList.remove('active');
+            localStorage.setItem('mp_settings', JSON.stringify(state.settings));
+            // 如果当前正在播放网易云歌曲，重新获取URL（音质可能变化）
+            if (state.currentSong?.neteaseId) {
+                const currentTime = audio.currentTime;  // 记录当前播放位置
+                state.currentSong.audioUrl = null;       // 清空旧URL，强制重新获取
+                await playSong(state.currentSong);       // 重新播放
+                audio.currentTime = currentTime;         // 恢复播放位置
+            }
+        });
+    });
+
+    // ---- 全屏播放器的播放列表弹出面板 ----
+    const queueBtnLarge = document.getElementById('queueBtnLarge');
+    const queuePopupLarge = document.getElementById('queuePopupLarge');
+
+    queueBtnLarge.addEventListener('click', (e) => {
+        e.stopPropagation();
+        renderQueue();
+        queuePopupLarge.classList.toggle('active');
+    });
+    // 点击面板外部关闭（底部栏和全屏播放器的队列面板都关闭）
+    document.getElementById('queueWrapperLarge').addEventListener('click', (e) => {
+        if (!e.target.closest('#queuePopupLarge') && !e.target.closest('#queueBtnLarge')) {
+            queuePopupLarge.classList.remove('active');
+        }
+    });
 
 }
 
@@ -106,10 +195,10 @@ function setupProgress() {
         // 更新底部栏进度条
         document.getElementById('progressFill').style.width = pct + '%';
         // 更新全屏播放器进度条
-        //document.getElementById('progressFillLarge').style.width = pct + '%';
+        document.getElementById('progressFillLarge').style.width = pct + '%';
         // 更新时间显示
-        //document.getElementById('currentTime').textContent = fmt(audio.currentTime);
-        //document.getElementById('totalTime').textContent = fmt(audio.duration);
+        document.getElementById('currentTime').textContent = fmt(audio.currentTime);
+        document.getElementById('totalTime').textContent = fmt(audio.duration);
         document.getElementById('timeInfo').textContent = `${fmt(audio.currentTime)} / ${fmt(audio.duration)}`;
         // 同步歌词高亮
         //syncLyrics(audio.currentTime);
@@ -126,10 +215,10 @@ function setupProgress() {
     });
 
     // ---- 点击全屏播放器进度条跳转 ----
-    // document.getElementById('progressBarLarge').addEventListener('click', (e) => {
-    //     if (!audio.duration) return;
-    //     audio.currentTime = ((e.clientX - e.currentTarget.getBoundingClientRect().left) / e.currentTarget.getBoundingClientRect().width) * audio.duration;
-    // });
+    document.getElementById('progressBarLarge').addEventListener('click', (e) => {
+        if (!audio.duration) return;
+        audio.currentTime = ((e.clientX - e.currentTarget.getBoundingClientRect().left) / e.currentTarget.getBoundingClientRect().width) * audio.duration;
+    });
 }
 /* ============================
    时间格式化工具函数
@@ -175,7 +264,7 @@ async function togglePlay() {
         }
     }
     updatePlayButtons();
-    //TODO: updateAlbumCover();    // 更新全屏封面动画
+    updateAlbumCover();    // 更新全屏封面动画
 }
 /* ============================
    播放下一首
@@ -291,7 +380,7 @@ function setupQueue() {
     document.addEventListener('click', (e) => {
         if(!e.target.closest('.queue-wrapper')) {
             document.getElementById('queuePopup').classList.remove('active');
-            //document.getElementById('queuePopupLarge').classList.remove('active');
+            document.getElementById('queuePopupLarge').classList.remove('active');
         }
     })
 }
@@ -303,7 +392,7 @@ function renderQueue() {
     const songs = state.playQueue;
     const countText = songs.length + '首歌';
     document.getElementById('queueCount').textContent = countText;
-    //document.getElementById('queueCountLarge').textContent = countText;
+    document.getElementById('queueCountLarge').textContent = countText;
 
     //空列表显示
     if  (songs.length === 0) {
@@ -321,7 +410,7 @@ function renderQueue() {
         </div>`).join('');
     //同时更新两个队列面板
     document.getElementById('queueList').innerHTML = html;
-    //document.getElementById('queueListLarge').innerHTML = html;
+    document.getElementById('queueListLarge').innerHTML = html;
 
     //绑定点击事件
     document.querySelectorAll('.queue-item').forEach(item =>{
@@ -363,21 +452,3 @@ function updateModeBtn() {
     })
 }
 
-/* ============================
-   播放器栏交互
-   点击播放器栏打开全屏播放器（避开控制按钮区域）
-   ============================ */
-function setupPlayerBar() {
-    const playerBar = document.getElementById('playerBar');
-    const fullscreen = document.getElementById('fullscreenPlayer');
-    // 点击播放器栏 → 打开全屏播放器
-    // 排除控制按钮、音量、队列区域的点击，避免误触
-    playerBar.addEventListener('click', (e) => {
-        if(e.target.closest('.player-controls') || e.target.closest('.control-btn')) return;
-        //if (!state.currentSong) return;  // 未播放任何歌曲时不打开
-        fullscreen.classList.add('active');
-        //updateAlbumCover();
-    })
-     // 关闭全屏播放器
-    document.getElementById('closePlayer').addEventListener('click', () => fullscreen.classList.remove('active'));
-}

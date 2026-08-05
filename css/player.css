@@ -466,3 +466,244 @@
     background: rgba(0,0,0,0.1);
     transform: scale(1.05);
 }
+/* ============================
+   全屏播放器主内容区
+   左侧（封面+控制） + 右侧（歌词），各占50%
+   ============================ */
+.player-content {
+    display: flex;
+    flex: 1; /* 占满剩余空间 */
+    overflow: hidden; /* 防止内容溢出 */
+}
+
+/*左半区*/
+.player-left {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 40px 40px;
+    background: linear-gradient(180deg, rgba(var(--theme-color-rgb), 0.06) 0%, rgba(var(--theme-color-rgb), 0.02) 100%); /* 主题色微渐变背景 */
+}
+
+/*专辑封面*/
+.album-cover {
+    width: min(420px, 35vh);   /* 取420px和35vh中较小值，适配不同屏幕 */
+    height: min(420px, 35vh);
+    border-radius: var(--radius);
+    background: linear-gradient(135deg, rgba(var(--theme-color-rgb), 0.35), rgba(var(--theme-color-rgb), 0.1));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 28px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.12), 0 8px 24px rgba(0,0,0,0.08); /* 大阴影，增强立体感 */
+    overflow: hidden;
+    position: relative;
+}
+
+/*封面内边框高光效果*/
+.album-cover::after {
+    content: '';
+    position: absolute;
+    inset: 0;              /* 等同于 top:0;right:0;bottom:0;left:0 */
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05); /* 内阴影，模拟玻璃边框 */
+}
+
+.album-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* 播放中的封面浮动动画 */
+.album-cover.playing {
+    animation: albumFloat 6s ease-in-out infinite;
+}
+
+/* 浮动动画 - 轻微上下浮动+缩放 */
+@keyframes albumFloat {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-8px) scale(1.01); }
+}
+
+/*歌曲信息*/
+.song-info {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.song-title {
+    font-weight: 600;
+    margin-bottom: 6px;
+    font-size: 1.571em;
+}
+
+.song-artist {
+    font-size: 1.071em;    /* 15px */
+    color: var(--text-secondary);
+}
+
+/*进度条*/
+.progress-container {
+    width: 100%;
+    max-width: 380px;
+    margin-bottom: 20px;    
+}
+
+/*进度条轨道*/
+.progress-bar-large {
+    height: 4px;
+    background: rgba(var(--theme-color-rgb), 0.15); /* 主题色15%背景 */
+    border-radius: 2px;
+    cursor: pointer;
+    position: relative;
+}
+
+/*进度条填充*/
+.progress-fill-large {
+    height: 100%;
+    background: var(--theme-color);
+    border-radius: 2px;
+    width: 0%;    /* 初始宽度0，JS动态更新 */
+    position: relative;
+    transition: width 0.1s linear; /* 线性过渡，跟上播放进度 */
+}
+
+/* 进度条拖动手柄（悬浮圆点，hover时显示） */
+.progress-fill-large::after {
+    content: '';
+    position: absolute;
+    right: -6px;           /* 在进度条右端 */
+    top: 50%;
+    transform: translateY(-50%);
+    width: 12px;
+    height: 12px;
+    background: var(--theme-color);
+    border-radius: 50%;
+    opacity: 0;            /* 默认隐藏 */
+    transition: opacity 0.2s;
+    box-shadow: 0 1px 4px rgba(var(--theme-color-rgb), 0.4);
+}
+
+.progress-bar-large:hover .progress-fill-large::after {
+    opacity: 1;            /* hover时显示拖动手柄 */
+}
+
+/*时间显示*/
+.time-display {
+    display: flex;
+    justify-content: space-between; /* 左右两端对齐 */
+    font-size: 0.786em;    /* 11px */
+    color: var(--text-secondary);
+    margin-top: 8px;
+    font-variant-numeric: tabular-nums; /* 等宽数字，防止跳动 */
+}
+
+/* 控制按钮组（大尺寸版） */
+.controls-large {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 28px;
+}
+/*控制按钮*/
+.control-btn-large {
+    width: 48px;
+    height: 48px;
+    border: none;
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+}
+.control-btn-large:hover {
+    background: rgba(0,0,0,0.05);
+    transform: scale(1.08);
+}
+
+/* 播放/暂停主按钮（大尺寸版，64x64 + 阴影） */
+.control-btn-large.play-btn-large {
+    width: 64px;
+    height: 64px;
+    background: var(--theme-color);
+    color: white;
+    box-shadow: 0 4px 20px rgba(var(--theme-color-rgb), 0.4); /* 主题色阴影 */
+}
+
+.control-btn-large.play-btn-large:hover {
+    transform: scale(1.06);
+}
+/* ============================
+   音质选择按钮（全屏播放器内）
+   圆角药丸形按钮，点击弹出音质选项
+   ============================ */
+.control-quality {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 16px;
+    position: relative; /* 为弹出面板提供定位基准 */
+}
+.control-quality-btn {
+    width: 60px;
+    height: 24px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 0.857em;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.control-quality-btn:hover {
+    border-color: var(--theme-color);
+    color: var(--theme-color);
+}
+/* ============================
+   音质选择弹出面板
+   在音质按钮上方弹出，可选择音质等级
+   ============================ */
+.quality-popup {
+    position: absolute;
+    bottom: 100%; /* 在音质按钮上方弹出 */
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg);
+    border-radius: var(--radius);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    padding: 6px;
+    display: none;
+    z-index: 10;
+}
+
+.quality-popup.active {
+    display: block;
+}
+/* 音质选项项（标准/较高/极高/无损/Hi-Res） */
+.quality-item {
+    padding: 8px 20px;
+    font-size: 0.857em;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-radius: var(--radius-sm);
+    white-space: nowrap; /* 不换行 */
+}
+
+/* 当前选中的音质 - 主题色 */
+.quality-item.active {
+    color: var(--theme-color);
+    font-weight: 500;
+}
+
+
+
+/* ============================
+   歌词面板（右半区）
+   纵向滚动，当前歌词居中高亮
+   ============================ */

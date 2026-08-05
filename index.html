@@ -313,6 +313,97 @@
                         <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
                     </svg>
                 </button>
+                <!--主体界面-->
+                <div class="player-content">
+                    <!--左侧封面等-->
+                    <div class="player-left">
+                        <!--封面-->
+                        <div class="album-cover" id="albumCover">
+                            <svg width="100" height="100" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55C7.79 13 6 14.79 6 17s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                            </svg>
+                        </div>
+                        <!--歌曲信息-->
+                        <div class="song-info">
+                            <h2 class="song-title" id="songTitle">未播放</h2>
+                            <p class="song-artist" id="songArtist">选择音乐开始播放</p>
+                        </div> 
+                        <!--音质切换-->
+                        <div class="control-quality">
+                            <button class="control-quality-btn" id="qualBtn">标准</button>
+                            <div class="quality-popup" id="qualityPopup">
+                                <div class="quality-item" data-level="standard">标准</div>
+                                <div class="quality-item" data-level="higher">较高</div>
+                                <div class="quality-item" data-level="exhigh">极高</div>
+                                <div class="quality-item" data-level="lossless">无损</div>
+                                <div class="quality-item" data-level="hires">Hi-Res</div>
+                            </div>
+                        </div>
+                        <!--进度条-->
+                        <div class="progress-container">
+                            <div class="progress-bar-large" id="progressBarLarge">
+                                <div class="progress-fill-large" id="progressFillLarge"></div>
+                            </div>
+                            <div class="time-display">
+                                <span id="currentTime">00:00</span>
+                                <span id="totalTime">00:00</span>
+                            </div>
+                        </div>
+                        <!--控制按钮-->
+                        <div class="controls-large">
+                            <button class="control-btn-large mode-btn-large" id="modeBtnLarge" title="顺序播放">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" class="mode-seq">
+                                    <path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/>
+                                </svg>
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" class="mode-single">
+                                    <path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/>
+                                    <text x="12" y="15" text-anchor="middle" font-size="7" font-weight="bold" fill="currentColor">1</text>
+                                </svg>
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" class="mode-shuffle">
+                                    <path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/>
+                                </svg>
+                            </button>
+                            <button class="control-btn-large" id="prevBtnLarge">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
+                                </svg>
+                            </button>
+                            <button class="control-btn-large play-btn-large" id="playBtnLarge">
+                                <svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor" class="play-icon">
+                                    <path d="M8 5v14l11-7z"/>
+                                </svg>
+                                <svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor" class="pause-icon" style="display:none">
+                                    <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                                </svg>
+                            </button>
+                            <button class="control-btn-large" id="nextBtnLarge">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+                                </svg>
+                            </button>
+                            <div class="queue-wrapper" id="queueWrapperLarge">
+                            <button class="control-btn-large" id="queueBtnLarge" title="播放列表">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M15 6H3v2h12V6zm0 4H3v2h12v-2zM3 16h8v-2H3v2zM17 6v8.18c-.31-.11-.65-.18-1-.18-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3V8h3V6h-5z"/>
+                                </svg>
+                            </button>
+                            <div class="queue-popup" id="queuePopupLarge">
+                                <div class="queue-header">
+                                    <span class="queue-title">播放列表</span>
+                                    <span class="queue-count" id="queueCountLarge">0 首歌曲</span>
+                                </div>
+                                <div class="queue-list" id="queueListLarge"></div>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                    <!--右侧歌词-->
+                    <div class="player-right">
+                        <div class="lyrics-container" id="lyriceContainer">
+                            <div class="lyric-line placeholder">暂无歌词</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
