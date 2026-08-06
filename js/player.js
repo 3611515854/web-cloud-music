@@ -53,7 +53,7 @@ async function playSong(song) {
     renderMusicList();       // 重新渲染歌曲列表（高亮当前歌曲）
     renderQueue();           // 更新播放队列面板
     updatePlayingState();    // 给当前歌曲行添加 .playing 类
-    //loadLyricsFromText(song.lrcText);  // 解析并显示歌词
+    loadLyricsFromText(song.lrcText);  // 解析并显示歌词
     savePlayerState();       // 保存播放状态到localStorage（刷新恢复用）
 }
 /* ============================
@@ -201,7 +201,7 @@ function setupProgress() {
         document.getElementById('totalTime').textContent = fmt(audio.duration);
         document.getElementById('timeInfo').textContent = `${fmt(audio.currentTime)} / ${fmt(audio.duration)}`;
         // 同步歌词高亮
-        //syncLyrics(audio.currentTime);
+        syncLyrics(audio.currentTime);
     });
 
     // 播放结束事件（自动播放下一首）
@@ -452,3 +452,90 @@ function updateModeBtn() {
     })
 }
 
+/* ============================
+   歌词解析
+   将LRC格式歌词文本解析为 [{time, text}] 数组
+   ============================ */
+function loadLyricsFromText(text) {
+    //console.log(text);//打印歌词
+    state.lyrics = [];
+    state.currentLyricIndex = -1;
+    const container = document.getElementById('lyricsContainer');
+    // 无歌词时显示占位文字
+    if (!text) {
+        container.innerHTML = '<div class="lyric-line placeholder">暂无歌词</div>'; 
+        return; 
+    }
+    // 逐行解析LRC格式
+    const lines = text.split('\n');
+    const parsed = [];
+    for (const line of lines) {
+        // 匹配 [分:秒.毫秒] 歌词内容 格式
+        const match = line.match(/\[(\d+):(\d+\.?\d*)\](.*)/);
+        if (match) {
+            const time = parseInt(match[1]) * 60 + parseFloat(match[2]);// 转为秒数
+            const text = match[3].trim();
+            if (text) parsed.push({ time, text });
+        }
+    }
+    // 按时间排序
+    parsed.sort((a, b) => a.time - b.time);
+    state.lyrics = parsed;
+
+    if (parsed.length === 0) {
+        container.innerHTML = '<div class="lyric-line placeholder">暂无歌词</div>';
+    } else {
+        // 生成歌词HTML
+        container.innerHTML = parsed.map((lyric, i) => `<div class="lyric-line" data-index="${i}">${lyric.text}</div>`).join('');
+        // 绑定点击事件 - 点击歌词行跳转到对应时间
+        container.querySelectorAll('.lyric-line').forEach(line => {
+            line.addEventListener('click', () => {
+                const index = parseInt(line.dataset.index);
+                if (state.lyrics[index]) audio.currentTime = state.lyrics[index].time;
+            });
+        });
+    }
+}
+
+/* ============================
+   歌词同步
+   根据当前播放时间高亮对应的歌词行，并自动滚动居中
+   ============================ */
+function syncLyrics(time) {
+
+    if (state.lyrics.length === 0) return;
+
+    // 从后往前找到当前时间对应的歌词行索引
+    // 减0.3秒是为了提前0.3秒高亮，视觉上更跟手
+    let idx = -1;
+    for (let i = state.lyrics.length - 1; i >= 0; i--) {
+        if (time >= state.lyrics[i].time - 0.3) {
+            idx = i;
+            break;
+        }
+    }
+    // 没有变化则跳过
+    if (idx === state.currentLyricIndex) return;
+    state.currentLyricIndex = idx;
+    console.log(state.lyrics[idx]);
+
+    // 更新所有歌词行的激活状态
+    const container = document.getElementById('lyricsContainer');
+    if (!container) return;
+    // 清除旧激活状态
+    container.querySelectorAll('.lyric-line.active').forEach(el => el.classList.remove('active'));
+    // 自动滚动到当前歌词行，使其垂直居中
+    if (idx >= 0) {
+        const activeLine = container.querySelector(`.lyric-line[data-index="${idx}"]`);
+        if (activeLine) {
+            activeLine.classList.add('active');
+            const containerRect = container.getBoundingClientRect();
+            const activeRect = activeLine.getBoundingClientRect();
+            // 计算滚动偏移量：让当前歌词行居中显示
+            container.scrollBy({
+                top: activeRect.top - containerRect.top - container.clientHeight / 2 + activeRect.height / 2,
+                behavior: 'smooth'
+            })
+        }
+    }
+}

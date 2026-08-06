@@ -707,3 +707,59 @@
    歌词面板（右半区）
    纵向滚动，当前歌词居中高亮
    ============================ */
+.player-right {
+    width: 50%;
+    background: linear-gradient(180deg, rgba(var(--theme-color-rgb), 0.06) 0%, rgba(var(--theme-color-rgb), 0.02) 100%);
+    display: flex;
+    flex-direction: column;
+}
+/* 歌词容器 */
+.lyrics-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 45vh 36px 45vh; /* 上下各45vh内边距，确保首尾歌词能居中 */
+    scroll-behavior: smooth; /* 平滑滚动 */
+    /* 渐变遮罩：顶部和底部淡出，聚焦中间歌词 */
+    mask-image: linear-gradient(transparent, black 15%, black 85%, transparent);
+    -webkit-mask-image: linear-gradient(transparent, black 15%, black 85%, transparent);
+}
+/* 单行歌词 */
+.lyric-line {
+    font-size: var(--lyric-size);
+    color: rgba(var(--theme-color-rgb), 0.3); /* 默认主题色30%透明度（未激活） */
+    transition: all 0.4s cubic-bezier(0.25, 0.1, 0.25, 1); /* 缓动过渡 */
+    line-height: 1.8;
+    padding: 4px 0;
+    cursor: pointer;       /* 点击可跳转到对应时间 */
+}
+.lyric-line:hover {
+    color: rgba(var(--theme-color-rgb), 0.5); /* hover时稍亮 */
+}
+/* 当前激活的歌词行 - 放大加粗 + 正常颜色 */
+.lyric-line.active {
+    font-size: calc(var(--lyric-size) * 1.2);
+    font-weight: 600;
+    color: var(--text);    /* 正常文字色（非透明） */
+    transform: scale(1.02);
+    transform-origin: left center; /* 从左侧缩放，避免文字跳动 */
+}
+/* 无歌词占位文字 */
+.lyric-line.placeholder {
+    color: var(--text-secondary);
+    font-style: italic;
+    text-align: center;
+    padding-top: 40vh;    /* 垂直居中 */
+}
+
+/* 歌词预览框（设置页面中预览歌词字号） */
+.lyric-preview {
+    height: 60px;
+    width: 464px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    padding: 16px 16px;
+}
