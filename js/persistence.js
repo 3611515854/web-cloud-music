@@ -19,25 +19,35 @@ async function loadAllSongs() {
         if (!meta) return;
         const list = JSON.parse(meta);
         for (const m of list) {
-            const song = await loadSongFromDB(m);
-            state.musicList.push(song);
+            try {
+                const song = await loadSongFromDB(m);
+                state.musicList.push(song);
+            } catch (e) {
+                console.error('加载歌曲失败:', m.title, e);
+            }
         }
-    } catch {}
+    } catch (e) {
+        console.error('加载音乐列表失败:', e);
+    }
 }
 
 async function loadSongFromDB(meta) {
     const song = { id: meta.id, title: meta.title, artist: meta.artist, audioUrl: null, coverUrl: null, lrcText: null, audioBlob: null, coverBlob: null  };
-    if (meta.hasAudio) {
+    // 尝试加载音频（不管 hasAudio 标记，直接按 key 取）
+    try {
         const blob = await dbGet(`audio_${meta.id}`);
         if (blob) { song.audioBlob = blob; song.audioUrl = URL.createObjectURL(blob); }
-    }
-    if (meta.hasCover) {
+    } catch {}
+    // 尝试加载封面
+    try {
         const blob = await dbGet(`cover_${meta.id}`);
         if (blob) { song.coverBlob = blob; song.coverUrl = URL.createObjectURL(blob); }
-    }
-    if (meta.hasLrc) {
-        song.lrcText = await dbGet(`lrc_${meta.id}`);
-    }
+    } catch {}
+    // 尝试加载歌词
+    try {
+        const text = await dbGet(`lrc_${meta.id}`);
+        if (text) song.lrcText = text;
+    } catch {}
     return song;
 }
 
