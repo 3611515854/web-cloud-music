@@ -209,6 +209,60 @@
                             </div>
                         </div>
                     </div>
+                    <!--字体大小设置-->
+                    <div class="settings-group">
+                        <h3>字体大小</h3>
+                        <p class="settings-desc">调整界面文字大小</p>
+                        <div class="font-size-options">
+                            <button class="font-size-btn" data-size="12">小</button>
+                            <button class="font-size-btn active" data-size="14">中</button>
+                            <button class="font-size-btn" data-size="16">大</button>
+                            <button class="font-size-btn" data-size="18">特大</button>
+                        </div>
+                    </div>
+                    <!--歌词字号设置-->
+                    <div class="settings-group">
+                        <h3>歌词字号</h3>
+                        <p class="settings-desc">调整全屏播放器歌词显示大小</p>
+                        <div class="lyric-size-slider">
+                            <input type="range" id="lyricSizeSlider" min="14" max="50" value="20">
+                            <span id="lyricSizeValue">20px</span>
+                        </div>
+                        <div class="lyric-preview">
+                            <div class="lyric-line ">预览歌词</div>
+                        </div>
+                    </div>
+                    <!--播放设置-->
+                    <div class="settings-group">
+                        <h3>播放设置</h3>
+                        <div class="toggle-row">
+                            <span>淡入淡出</span>
+                            <label class="toggle">
+                                <input type="checkbox" id="fadeToggle" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-row">
+                            <span>自动播放下一首</span>
+                            <label class="toggle">
+                                <input type="checkbox" id="autoNextToggle" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-row">
+                            <span>默认播放音质</span>
+                            <div class="quality-select-wrapper">
+                                <button class="quality-select-btn" id="settingsQualBtn">标准</button>
+                                <div class="quality-popup" id="settingsQualPopup">
+                                    <div class="quality-item" data-level="standard">标准</div>
+                                    <div class="quality-item" data-level="higher">较高</div>
+                                    <div class="quality-item" data-level="exhigh">极高</div>
+                                    <div class="quality-item" data-level="lossless">无损</div>
+                                    <div class="quality-item" data-level="hires">Hi-Res</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <!--登录页-->

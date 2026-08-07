@@ -78,6 +78,7 @@
     gap: 8px;
     flex-wrap: wrap;
     margin-top: 16px;
+    margin-bottom: 16px;
 }
 /* 单个颜色按钮 */
 .theme-color-btn {
@@ -153,6 +154,175 @@
 .color-input-row input[type="text"]:focus {
     border-color: var(--theme-color);
 }
+/* ============================
+   字号选择按钮组
+   小/中/大/特大 四个按钮
+   ============================ */
+.font-size-options {
+    display: flex;
+    gap: 8px;
+}
+/* 字号按钮和登录按钮共用基础样式 */
+.font-size-btn,
+.login-btn {
+    padding: 8px 20px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    font-size: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.font-size-btn:hover,
+.login-btn:hover {
+    border-color: var(--theme-color);
+}
+/* 选中状态 - 主题色背景白字 */
+.font-size-btn.active,
+.login-btn.active {
+    background: var(--theme-color);
+    color: white;
+    border-color: var(--theme-color);
+}
+/* ============================
+   歌词字号滑块
+   横向滑块 + 当前值显示
+   ============================ */
+.lyric-size-slider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+/* 滑块轨道 */
+.lyric-size-slider input[type="range"] {
+    flex: 1;
+    height: 4px;
+    -webkit-appearance: none;  /* 去掉默认样式 */
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+}
+/* 滑块手柄 */
+.lyric-size-slider input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    background: var(--theme-color);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+/* 滑块数值显示 */
+.lyric-size-slider span {
+    font-size: 0.929em;
+    color: var(--text-secondary);
+    min-width: 40px;        /* 防止单位切换时宽度抖动 */
+}
+/* ============================
+   开关控件（Toggle Switch）
+   模拟iOS风格的滑动开关
+   ============================ */
+.toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+}
+
+/* 开关容器 */
+.toggle {
+    position: relative;
+    width: 60px;
+    height: 24px;
+    cursor: pointer;
+}
+
+/* 隐藏原生checkbox */
+.toggle input { display: none; }
+
+/* 开关轨道（灰色背景） */
+.toggle-slider {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: var(--border);
+    border-radius: 12px;
+    transition: background 0.3s;
+}
+
+/* 开关圆形手柄（白色圆点） */
+.toggle-slider::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.3s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+/* 选中状态 - 轨道变主题色 */
+.toggle input:checked + .toggle-slider {
+    background: var(--theme-color);
+}
+
+/* 选中状态 - 手柄滑到右侧 */
+.toggle input:checked + .toggle-slider::before {
+    transform: translateX(36px);
+}
+
+/* ============================
+   音质选择器（设置页版本）
+   右对齐弹出菜单
+   ============================ */
+.quality-select-wrapper {
+    position: relative;
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* 音质选择按钮（设置页） */
+.quality-select-btn {
+    padding: 4px 14px;
+    border: none;
+    background: var(--theme-color);
+    color: white;
+    font-size: 9.38px;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    width: 60px;
+    height: 24px;
+}
+
+.quality-select-btn:hover {
+    border-color: var(--theme-color);
+}
+
+/* 设置页音质弹出面板（按钮上方弹出） */
+.quality-select-wrapper .quality-popup {
+    position: absolute;
+    bottom: 100%;           /* 在按钮上方 */
+    right: 0;               /* 右对齐 */
+    margin-bottom: 4px;
+    background: var(--bg);
+    border-radius: var(--radius);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    padding: 6px;
+    display: none;
+    z-index: 10;
+    min-width: 120px;
+}
+
+.quality-select-wrapper .quality-popup.active {
+    display: block;
+}
+
+
 
 
 /*歌曲右侧更多按钮*/
