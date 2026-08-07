@@ -1,31 +1,40 @@
 ﻿/*设置面板、弹窗、上下文菜单、登录页*/
+/* ============================
+   设置面板容器
+   限制最大宽度，避免大屏幕上设置项过宽
+   ============================ */
 .settings-panel {
     max-width: 520px;
 }
-
+/* ============================
+   设置分组
+   每个设置区块之间用边框分隔
+   ============================ */
 .settings-group {
     margin-bottom: 32px;
     padding-bottom: 24px;
     border-bottom: 1px solid var(--border);
 }
-
+/* 最后一个分组不需要底部分隔线 */
 .settings-group:last-child {
     border-bottom: none;
 }
-
+/* 分组标题 */
 .settings-group h3 {
     font-size: 1.143em;
     font-weight: 600;
     margin-bottom: 4px;
     white-space: nowrap;
 }
-
+/* 分组描述文字 */
 .settings-desc {
     font-size: 0.929em;
     color: var(--text-secondary);
     margin-bottom: 16px;
 }
-
+/* ============================
+   api输入按钮
+   ============================ */
 .api-input {
     background: var(--bg-secondary);
     border-radius: var(--radius-full);
@@ -40,7 +49,10 @@
     border-color: var(--theme-color);
 }
 
-
+/* ============================
+   登录按钮
+   主题色背景，胶囊形
+   ============================ */
 .login-btn {
     display: inline-flex;
     align-items: center;
@@ -57,6 +69,91 @@
 }
 
 .login-btn:hover { opacity: 0.9; }
+/* ============================
+   主题色选择器（8个预设色块）
+   横向排列，圆形单选
+   ============================ */
+.theme-colors {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+}
+/* 单个颜色按钮 */
+.theme-color-btn {
+    width: 36px;
+    height: 36px;
+    border: 3px solid transparent; /* 透明边框，选中时变色 */
+    border-radius: 50%;     /* 正圆形 */
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+.theme-color-btn:hover { transform: scale(1.1); } /* 悬停放大 */
+
+/* 选中状态 - 边框变深色 */
+.theme-color-btn.active {
+    border-color: var(--text);
+}
+/* 选中状态 - 中心白色圆点（勾选指示） */
+.theme-color-btn.active::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 10px;
+    height: 10px;
+    background: white;
+    border-radius: 50%;
+}
+/* ============================
+   自定义颜色输入区
+   颜色面板 + 文本输入框并排
+   ============================ */
+.custom-color {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.custom-color label {
+    font-size: 0.929em;
+    color: var(--text-secondary);
+}
+
+/* 颜色输入行 */
+.color-input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 原生颜色选择面板 */
+.color-input-row input[type="color"] {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    padding: 2px;
+}
+
+/* 手动输入颜色值的文本框 */
+.color-input-row input[type="text"] {
+    width: 80px;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 0.929em;
+    font-family: monospace;  /* 等宽字体，方便输入#RRGGBB */
+    outline: none;
+}
+
+.color-input-row input[type="text"]:focus {
+    border-color: var(--theme-color);
+}
+
 
 /*歌曲右侧更多按钮*/
 .more-btn {
