@@ -6,7 +6,48 @@
    页面初始化时调用，将持久化的设置值同步到界面
    ============================ */
 function applySettings() {
-    // TODO: 读取state.settings的值，更新UI控件状态（主题色、字号、歌词字号、开关、音质等）
+    const s = state.settings;
+    //console.log(s);
+    // 更新CSS变量，控制全局字号和歌词字号
+    document.documentElement.style.setProperty('--font-size', s.fontSize + 'px');
+    document.documentElement.style.setProperty('--lyric-size', s.lyricSize + 'px');
+    // 恢复主题颜色
+    if (s.themeColor) {
+        setThemeColor(s.themeColor);
+        // 同步主题色按钮的激活状态
+        document.querySelectorAll('.theme-color-btn').forEach(b => b.classList.toggle('active', b.dataset.color === s.themeColor));
+        // 同步自定义颜色输入框
+        const picker = document.getElementById('customColorPicker');
+        const text = document.getElementById('customColorText');
+        if (picker) picker.value = s.themeColor;
+        if (text) text.value = s.themeColor;
+    }
+    // 同步字号按钮的激活状态
+    document.querySelectorAll('.font-size-btn').forEach(b => b.classList.toggle('active', b.dataset.size == s.fontSize));
+
+    // 同步歌词字号滑块
+    const slider = document.getElementById('lyricSizeSlider');
+    const val = document.getElementById('lyricSizeValue');
+    if (slider) { slider.value = s.lyricSize; val.textContent = s.lyricSize + 'px'; }
+
+    // 同步开关状态
+    const fade = document.getElementById('fadeToggle');
+    const autoNext = document.getElementById('autoNextToggle');
+    if (fade) fade.checked = s.fade;
+    if (autoNext) autoNext.checked = s.autoNext;
+
+    // 同步音质选择
+    const level = s.quality || 'standard';
+    const qualBtn = document.getElementById('qualBtn');
+    const settingsQualBtn = document.getElementById('settingsQualBtn');
+    const qualItem = document.querySelector(`.quality-item[data-level="${level}"]`);
+    if (qualItem) {
+        const text = qualItem.textContent;
+        if (qualBtn) qualBtn.textContent = text;         // 全屏播放器音质按钮
+        if (settingsQualBtn) settingsQualBtn.textContent = text; // 设置页音质按钮
+        // 同步所有音质选项的激活状态
+        document.querySelectorAll('.quality-item').forEach(i => i.classList.toggle('active', i.dataset.level === level));
+    }
 }
 
 
@@ -17,7 +58,108 @@ function applySettings() {
    主题色、字号、歌词字号、开关、音质的选择交互
    ============================ */
 function setupSettings() {
-    // TODO: 绑定设置面板的控件事件，更新state.settings并调用applySettings()，实现实时预览和持久化
+    // 点击设置按钮，跳转到设置页
+    document.getElementById('settingsBtn').addEventListener('click', () => switchTab('settings'));
+    // ---- 主题色选择（8个预设色块） ---
+    document.querySelectorAll('.theme-color-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            // 取消其他按钮的激活状态
+            document.querySelectorAll('.theme-color-btn').forEach(b => b.classList.remove('active'));
+            // 激活当前按钮
+            btn.classList.add('active');
+            // 应用主题色到CSS变量
+            setThemeColor(btn.dataset.color);
+            state.settings.themeColor = btn.dataset.color;
+            // 同步到自定义颜色输入框
+            document.getElementById('customColorPicker').value = btn.dataset.color;
+            document.getElementById('customColorText').value = btn.dataset.color;
+            saveSettings();
+        })
+    })
+    // ---- 自定义颜色选择器（颜色面板） ----
+    const picker = document.getElementById('customColorPicker');
+    const text = document.getElementById('customColorText');
+
+    // 颜色面板实时预览
+    picker.addEventListener('input', () => {
+        setThemeColor(picker.value);
+        text.value = picker.value;
+        state.settings.themeColor = picker.value;
+        // 选择自定义颜色时，取消预设色块的激活
+        document.querySelectorAll('.theme-color-btn').forEach(b => b.classList.remove('active'));
+        saveSettings();
+    });
+
+    // 手动输入颜色值（需验证格式）
+    text.addEventListener('input', () => {
+        // 只允许 #RRGGBB 格式
+        if (/^#[0-9A-Fa-f]{6}$/.test(text.value)) {
+            setThemeColor(text.value);
+            picker.value = text.value;
+            state.settings.themeColor = text.value;
+            document.querySelectorAll('.theme-color-btn').forEach(b => b.classList.remove('active'));
+            saveSettings();
+        }
+    });
+
+    // ---- 字号选择按钮 ----
+    document.querySelectorAll('.font-size-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.font-size-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const size = btn.dataset.size;
+            // 实时更新CSS变量，页面字号立即变化
+            document.documentElement.style.setProperty('--font-size', size + 'px');
+            state.settings.fontSize = size;
+            saveSettings();
+        });
+    });
+
+    // ---- 歌词字号滑块 ----
+    const slider = document.getElementById('lyricSizeSlider');
+    const val = document.getElementById('lyricSizeValue');
+    slider.addEventListener('input', () => {
+        const size = slider.value;
+        document.documentElement.style.setProperty('--lyric-size', size + 'px');
+        val.textContent = size + 'px';
+        state.settings.lyricSize = size;
+        saveSettings();
+    });
+
+    // ---- 开关选项（淡入淡出 / 自动播放下一首） ----
+    document.getElementById('fadeToggle').addEventListener('change', (e) => { state.settings.fade = e.target.checked; saveSettings(); });
+    document.getElementById('autoNextToggle').addEventListener('change', (e) => { state.settings.autoNext = e.target.checked; saveSettings(); });
+
+    // ---- 音质选择弹出面板 ----
+    const settingsQualBtn = document.getElementById('settingsQualBtn');
+    const settingsQualPopup = document.getElementById('settingsQualPopup');
+
+    // 点击按钮切换弹出面板显示/隐藏
+    settingsQualBtn.addEventListener('click', (e) => { e.stopPropagation(); settingsQualPopup.classList.toggle('active'); });
+
+    // 点击面板外部关闭
+    document.addEventListener('click', (e) => { if (!e.target.closest('.quality-select-wrapper')) settingsQualPopup.classList.remove('active'); });
+
+    // 每个音质选项的点击事件
+    settingsQualPopup.querySelectorAll('.quality-item').forEach(item => {
+        item.addEventListener('click', () => {
+            // 更新激活状态
+            settingsQualPopup.querySelectorAll('.quality-item').forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+            // 保存设置
+            state.settings.quality = item.dataset.level;
+            settingsQualBtn.textContent = item.textContent;
+            settingsQualPopup.classList.remove('active');
+            saveSettings();
+            // 同步全屏播放器的音质按钮
+            const qualBtn = document.getElementById('qualBtn');
+            const qualPopup = document.getElementById('qualityPopup');
+            if (qualBtn) { qualBtn.textContent = item.textContent; }
+            qualPopup.querySelectorAll('.quality-item').forEach(i => {
+                i.classList.toggle('active', i.dataset.level === item.dataset.level);
+            });
+        });
+    });
 }
 
 
@@ -26,7 +168,13 @@ function setupSettings() {
    将十六进制颜色转为RGB，并更新CSS变量
    ============================ */
 function setThemeColor(hex) {
-    //TODO: 将hex颜色转为RGB，更新CSS变量--theme-color和--theme-color-rgb
+    // 解析 #RRGGBB 为 r, g, b 分量
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    // 更新CSS变量 --theme-color（纯色）和 --theme-color-rgb（RGB分量，用于rgba）
+    document.documentElement.style.setProperty('--theme-color', hex);
+    document.documentElement.style.setProperty('--theme-color-rgb', `${r}, ${g}, ${b}`);
 }
 
 
@@ -79,11 +227,11 @@ document.querySelectorAll('.nav-item[data-tab]').forEach(item => {
     item.addEventListener('click', () => switchTab(item.dataset.tab))
 })
 
-// 设置按钮
-const settingsBtn = document.getElementById('settingsBtn');
-if (settingsBtn) {
-    settingsBtn.addEventListener('click', () => switchTab('settings'))
-}
+// // 设置按钮
+// const settingsBtn = document.getElementById('settingsBtn');
+// if (settingsBtn) {
+//     settingsBtn.addEventListener('click', () => switchTab('settings'))
+// }
 
 // 返回按钮、登录按钮、登录返回按钮
 document.getElementById('settingsBackBtn').addEventListener('click', () => switchTab(state.previousTab || 'all'));
@@ -238,15 +386,18 @@ document.getElementById('searchInput').addEventListener('input', renderMusicList
 
 async function init() {
     //加载持久化数据
-    await loadAllSongs();// 从IndexedDB加载所有歌曲
+    loadSettings();           // 从localStorage加载设置
+    await loadAllSongs();     // 从IndexedDB加载所有歌曲
     state.playQueue = [...state.musicList]; // 初始化播放队列
+    //应用设置到UI
+    applySettings();
     //渲染初始页面
     renderMusicList();        // 渲染本地音乐列表
     //绑定事件
     setupSettings();          // 设置面板事件
     setupQueue();             // 播放队列
-    setupImport();// 导入音乐
-    setupControls();  // 播放控制按钮
+    setupImport();            // 导入音乐
+    setupControls();          // 播放控制按钮
     setupProgress();          // 进度条
     setupVolume();            // 音量控制
     updateModeBtn();          // 播放模式按钮

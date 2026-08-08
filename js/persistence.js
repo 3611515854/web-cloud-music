@@ -105,3 +105,14 @@ async function loadPlayerState() {
         }
     } catch {}
 }
+
+function saveSettings() {
+    localStorage.setItem('mp_settings', JSON.stringify(state.settings));
+}
+
+function loadSettings() {
+    try {
+        const s = localStorage.getItem('mp_settings');
+        if (s) state.settings = { ...state.settings, ...JSON.parse(s) };
+    } catch {}
+}
