@@ -135,6 +135,8 @@ function setupControls() {
     // ---- 音质选择弹出面板（全屏播放器内） ----
     const qualBtn = document.getElementById('qualBtn');
     const qualPopup = document.getElementById('qualityPopup');
+    if (!qualBtn || !qualPopup) return;  // 元素不存在则跳过
+
     // 点击音质按钮切换弹出面板
     qualBtn.addEventListener('click', (e) => {
         e.stopPropagation(); //阻止冒泡，避免触发document的关闭逻辑
@@ -153,8 +155,11 @@ function setupControls() {
             // 保存设置
             state.settings.quality = item.dataset.level;
             qualBtn.textContent = item.textContent;
+            // 同步设置页音质按钮文字
+            const settingsQualBtn = document.getElementById('settingsQualBtn');
+            if (settingsQualBtn) settingsQualBtn.textContent = item.textContent;
             qualPopup.classList.remove('active');
-            localStorage.setItem('mp_settings', JSON.stringify(state.settings));
+            saveSettings();
             // 如果当前正在播放网易云歌曲，重新获取URL（音质可能变化）
             if (state.currentSong?.neteaseId) {
                 const currentTime = audio.currentTime;  // 记录当前播放位置

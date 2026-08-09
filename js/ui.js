@@ -155,9 +155,11 @@ function setupSettings() {
             const qualBtn = document.getElementById('qualBtn');
             const qualPopup = document.getElementById('qualityPopup');
             if (qualBtn) { qualBtn.textContent = item.textContent; }
-            qualPopup.querySelectorAll('.quality-item').forEach(i => {
-                i.classList.toggle('active', i.dataset.level === item.dataset.level);
-            });
+            if (qualPopup) {
+                qualPopup.querySelectorAll('.quality-item').forEach(i => {
+                    i.classList.toggle('active', i.dataset.level === item.dataset.level);
+                });
+            }
         });
     });
 }
