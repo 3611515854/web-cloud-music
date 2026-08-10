@@ -382,6 +382,70 @@ function renderMusicList() {
 document.getElementById('searchInput').addEventListener('input', renderMusicList);
 
 /* ============================
+   登录方式管理 - 事件绑定
+   账号密码/验证码/扫码 四个标签，切换时动态加载对应的登录表单
+   ============================ */
+function setupLoginTabs() {
+    const tabs = document.querySelectorAll('.login-tab');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            //切换激活状态
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            state.loginType = tab.dataset.type;
+            //加载对应的登录表单
+            const loginMethod = document.getElementById('loginMethod');
+            if (state.loginType === 'account') {
+                loginMethod.innerHTML = `
+                    <div class="login-phone-area">
+                        <div class="login-form">
+                            <div class="login-input-group">
+                                <input type="tel" placeholder="手机号" id="loginPhone">
+                            </div>
+                            <div class="login-input-group">
+                                <input type="password" placeholder="密码" id="loginPassword">
+                            </div>
+                            <button class="btn-primary login-submit-btn">
+                                <p class="btn-text">登录</p> 
+                            </button>
+                        </div>
+                    </div>`;
+            }
+            else if (state.loginType === 'phone') {
+                loginMethod.innerHTML = `
+                    <div class="login-phone-area">
+                        <div class="login-form">
+                            <div class="login-input-group">
+                                <input type="tel" placeholder="手机号" id="loginPhone">
+                            </div>
+                            <div class="login-input-group">
+                                <input type="text" placeholder="验证码" id="loginIdentifyCode">
+                            </div>
+                            <button class="btn-primary login-get-indentify-code-btn">
+                                <p class="btn-text">获取验证码</p> 
+                            </button>
+                            <button class="btn-primary login-indentify-submit-btn">
+                                <p class="btn-text">登录</p> 
+                            </button>
+                        </div>
+                    </div>`;
+            } else if (state.loginType === 'QRcode') {
+                loginMethod.innerHTML = `
+                    <div class="login-qr-area">
+                        <div class="login-qr-placeholder" id="qrPlaceholder">
+                            <svg width="120" height="120" viewBox="0 0 24 24" fill="currentColor" opacity="0.3">
+                                <path d="M3 11h8V3H3v8zm2-6h4v4H5V5zM3 21h8v-8H3v8zm2-6h4v4H5v-4zM13 3v8h8V3h-8zm6 6h-4V5h4v4zM13 18h2v2h-2zM15 14h2v4h-2zM13 22h2v-2h-2zM19 18h-2v2h2zM17 14h2v4h-2zM19 22h2v-2h-2zM13 14h2v2h-2z"/>
+                            </svg>
+                            <p>点击获取二维码</p>
+                        </div>
+                        <img id="qrCodeImg" style="display:none; width:200px; height:200px; border-radius:8px;">
+                        <p class="qr-status" id="qrStatus"></p>
+                    </div>`;
+            }
+        })
+    })
+}
+/* ============================
    应用初始化
    页面加载完成后执行，恢复状态并绑定所有事件
    ============================ */
@@ -404,7 +468,7 @@ async function init() {
     setupVolume();            // 音量控制
     updateModeBtn();          // 播放模式按钮
     setupPlayerBar();         // 播放器栏事件
-
+    setupLoginTabs();         // 登录方式切换
     await loadPlayerState();
 }
 

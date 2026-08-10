@@ -302,3 +302,37 @@
     font-size: 0.929em;     /* 13px */
     opacity: 0.6;           /* 提示文字更淡 */
 }
+/* ============================
+   按钮样式
+   主要按钮（主题色）和次要按钮（灰色）
+   ============================ */
+.btn-primary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: var(--theme-color);
+    color: white;
+    border: none;
+    border-radius: var(--radius-full); /* 胶囊形 */
+    font-size: inherit;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+}
+
+.btn-primary:hover { opacity: 0.9; }
+.btn-primary:active { transform: scale(0.97); } /* 按下时轻微缩小 */
+
+.btn-secondary {
+    padding: 10px 20px;
+    background: var(--bg-secondary);
+    color: var(--text);
+    border: none;
+    border-radius: var(--radius-full);
+    font-size: inherit;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-secondary:hover { background: var(--border); }

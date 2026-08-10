@@ -37,11 +37,12 @@
    ============================ */
 .api-input {
     background: var(--bg-secondary);
-    border-radius: var(--radius-full);
+    border-radius: var(--radius-sm);
     gap: 8px;
     padding: 8px 16px;
     border:  1px solid transparent;
     width: 240px;
+    outline: none;
     transition: border-color 0.2s;
 }
 
@@ -69,6 +70,11 @@
 }
 
 .login-btn:hover { opacity: 0.9; }
+/* 登录按钮文字居中 */
+.btn-text {
+    text-align: center; 
+    width: 100%;
+}
 /* ============================
    主题色选择器（8个预设色块）
    横向排列，圆形单选
@@ -322,10 +328,10 @@
     display: block;
 }
 
-
-
-
-/*歌曲右侧更多按钮*/
+/* ============================
+   更多按钮（三个竖点）
+   鼠标悬停歌曲行时才显示
+   ============================ */
 .more-btn {
     width: 32px;
     height: 32px;
@@ -341,7 +347,7 @@
     transition: all 0.15s;/*控制变化速度*/
     flex-shrink: 0;
 }
-
+/* 歌曲行悬停时显示更多按钮 */
 .music-item:hover .more-btn {
     opacity: 1;
 }
@@ -349,4 +355,218 @@
 .more-btn:hover {
     background: var(--bg-secondary);
     color: var(--text);
+}
+/* ============================
+   危险按钮（红色，如删除）
+   ============================ */
+.btn-danger {
+    padding: 10px 20px;
+    background: #FF3B30;    /* 红色警告 */
+    color: white;
+    border: none;
+    border-radius: var(--radius-full);
+    font-size: 0.929em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: opacity 0.2s;
+}
+
+.btn-danger:hover { opacity: 0.9; }
+
+/* ============================
+   自定义滚动条样式
+   细滚动条，灰色滑块，hover变深
+   ============================ */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+/* ============================
+   登录页布局
+   居中卡片 + 二维码区 + 手机号区
+   ============================ */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 40px 20px;
+}
+/* 登录卡片 */
+.login-card {
+    width: 100%;
+    max-width: 344px;
+    background: var(--bg);
+    border-radius: var(--radius);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    padding: 40px 32px;
+}
+/* 登录Logo区域 */
+.login-logo {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.login-logo svg {
+    color: var(--theme-color);
+    margin-bottom: 12px;
+}
+
+.login-logo h2 {
+    font-size: 1.5em;
+    margin-bottom: 8px;
+    color: var(--text);
+}
+
+.login-logo p {
+    font-size: 0.857em;
+    color: var(--text-secondary);
+}
+
+/* 登录内容行（二维码 + 分隔线 + 手机号） */
+.login-content-row {
+    display: flex;
+    align-items: stretch;
+    gap: 24px;
+}
+
+/* 二维码区域 */
+.login-qr-area {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 二维码占位（未生成时显示） */
+.login-qr-placeholder {
+    width: 100%;
+    max-width: 200px;
+    aspect-ratio: 1;
+    background: var(--bg-secondary);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.login-qr-placeholder p {
+    font-size: 0.786em;
+    color: var(--text-secondary);
+    text-align: center;
+    padding: 0 12px;
+    cursor: pointer;
+}
+
+/* 二维码状态提示文字 */
+.qr-status {
+    font-size: 0.857em;
+    color: var(--text-secondary);
+    text-align: center;
+    margin-top: 12px;
+    min-height: 20px;
+}
+
+/* 竖向分隔线（二维码和手机号之间的"或"） */
+.login-divider-vertical {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 20px;
+}
+
+.divider-line {
+    width: 1px;
+    flex: 1;
+    background: var(--border);
+    min-height: 60px;
+}
+
+.login-divider-vertical span {
+    font-size: 0.857em;
+    color: var(--text-secondary);
+}
+
+/* 手机号登录区域 */
+.login-phone-area {
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+
+/* 登录表单 */
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    max-width: 280px;
+}
+
+.login-input-group {
+    width: 100%;
+}
+
+/* 登录输入框 */
+.login-input-group input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.login-input-group input:focus {
+    border-color: var(--theme-color);
+}
+
+/* 登录提交按钮 */
+.login-submit-btn {
+    width: 100%;
+    margin-top: 8px;
+}
+
+/* ============================
+   登录方式标签页切换栏
+   账号密码/验证码/扫码 四个标签，药丸形选中效果
+   ============================ */
+.login-tabs {
+    display: flex;
+    gap: 4px;
+    width: 100%;
+    margin-bottom: 20px;
+    padding: 4px;
+    justify-content: space-between;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    /* width: fit-content; 宽度由内容撑开 */
+}
+
+.login-tab {
+    padding: 8px 16px;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.689em;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+.login-tab:hover {
+    color: var(--text);
+}
+/* 激活标签 - 白色背景+阴影，形成"凸起"效果 */
+.login-tab.active {
+    background: var(--bg);           /* 白色背景，从灰色轨道中突出 */
+    color: var(--text);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08); /* 微阴影增强立体感 */
 }

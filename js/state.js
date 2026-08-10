@@ -16,6 +16,7 @@ const API_BASE = localStorage.getItem('netease_api') || 'http://106.14.205.179:1
    存储应用运行时的所有状态数据
    ============================ */
 const state  = {
+   loginType: 'account',        // account/phone/QRcode 登录方式
     musicList: [],          //本地音乐列表（从IndexeDB加载的歌曲数组）
     playlists: [],          //用户创建的本地歌单数组
     currentSong: null,      //当前正在播放的音乐对象

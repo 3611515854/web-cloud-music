@@ -10,7 +10,7 @@ function setupPlayerBar() {
     // 点击播放器栏 → 打开全屏播放器
     // 排除控制按钮、音量、队列区域的点击，避免误触
     playerBar.addEventListener('click', (e) => {
-        if(e.target.closest('.player-controls, .control-btn, .player-progress, .volume-wrapper')) return;
+        if(e.target.closest('.player-controls, .control-btn, .player-progress, .volume-wrapper, .queue-popup')) return;
         //if (!state.currentSong) return;  // 未播放任何歌曲时不打开
         fullscreen.classList.add('active');
         updateAlbumCover();
