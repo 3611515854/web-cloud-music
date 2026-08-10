@@ -8,15 +8,17 @@ const FAVORITES_ID = 0;
 const DEFAULT_PLAYLISTS = [{ id: FAVORITES_ID, name: '我喜欢的音乐', songs: [] }];
 
 // 网易云API代理服务器地址
-// 优先从 localStorage 读取用户自定义地址，否则使用默认地址
-const API_BASE = localStorage.getItem('netease_api') || 'http://106.14.205.179:1000';
+// 页面加载时从 localStorage 读取用户自定义地址
+// 存取由 persistence.js 中的 saveApiBase() / loadApiBase() 管理
+// 用户在设置页的 #apiBaseInput 输入，ui.js 的 setupSettings 中绑定实时保存
+const API_BASE = localStorage.getItem('netease_api');
 
 /* ============================
    全局状态对象
    存储应用运行时的所有状态数据
    ============================ */
 const state  = {
-   loginType: 'account',        // account/phone/QRcode 登录方式
+    loginType: 'account',        // account/phone/QRcode 登录方式
     musicList: [],          //本地音乐列表（从IndexeDB加载的歌曲数组）
     playlists: [],          //用户创建的本地歌单数组
     currentSong: null,      //当前正在播放的音乐对象

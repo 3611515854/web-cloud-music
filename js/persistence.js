@@ -116,3 +116,31 @@ function loadSettings() {
         if (s) state.settings = { ...state.settings, ...JSON.parse(s) };
     } catch {}
 }
+
+/* ============================
+   API代理地址存取
+   将用户自定义的网易云API代理地址
+   存入localStorage，页面初始化时恢复
+   存储 key: "netease_api"（与 state.js 中 API_BASE 常量对应）
+   ============================ */
+
+/**
+ * 保存 API 代理地址到 localStorage
+ * @param {string} url - 用户输入的 API 地址
+ */
+function saveApiBase(url) {
+    if (url) {
+        localStorage.setItem('netease_api', url);
+    } else {
+        // 如果清空输入框，则删除缓存
+        localStorage.removeItem('netease_api');
+    }
+}
+
+/**
+ * 从 localStorage 读取已保存的 API 代理地址
+ * @returns {string} 已保存的 API 地址，无保存则返回空字符串
+ */
+function loadApiBase() {
+    return localStorage.getItem('netease_api') || '';
+}

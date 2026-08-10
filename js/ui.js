@@ -36,6 +36,10 @@ function applySettings() {
     if (fade) fade.checked = s.fade;
     if (autoNext) autoNext.checked = s.autoNext;
 
+    // 恢复 API 代理地址输入框
+    const apiInput = document.getElementById('apiBaseInput');
+    if (apiInput) apiInput.value = loadApiBase();
+
     // 同步音质选择
     const level = s.quality || 'standard';
     const qualBtn = document.getElementById('qualBtn');
@@ -129,6 +133,13 @@ function setupSettings() {
     // ---- 开关选项（淡入淡出 / 自动播放下一首） ----
     document.getElementById('fadeToggle').addEventListener('change', (e) => { state.settings.fade = e.target.checked; saveSettings(); });
     document.getElementById('autoNextToggle').addEventListener('change', (e) => { state.settings.autoNext = e.target.checked; saveSettings(); });
+
+    // ---- API 代理地址输入 ----
+    const apiInput = document.getElementById('apiBaseInput');
+    if (apiInput) {
+        // 用户输入时实时保存到 localStorage
+        apiInput.addEventListener('input', () => saveApiBase(apiInput.value.trim()));
+    }
 
     // ---- 音质选择弹出面板 ----
     const settingsQualBtn = document.getElementById('settingsQualBtn');
