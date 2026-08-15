@@ -445,6 +445,9 @@ function renderLoginForm(type) {
                 <img id="qrCodeImg" style="display:none; width:200px; height:200px; border-radius:8px;">
                 <p class="qr-status" id="qrStatus"></p>
             </div>`;
+        // 渲染完成后绑定扫码占位区域的点击事件（元素此时才存在于 DOM 中）
+        const placeholder = document.getElementById('qrPlaceholder');
+        if (placeholder) placeholder.addEventListener('click', startQrLogin);
     }
 }
 
@@ -465,6 +468,96 @@ function setupLoginTabs() {
             renderLoginForm(state.loginType);
         })
     })
+}
+
+/* ============================
+   登录功能
+   手机号密码登录 + 二维码扫码登录
+   ============================ */
+function setupLogin() {
+    const loginBtn = document.querySelector('.login-btn');
+    const loginBackBtn = document.getElementById('loginBackBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    // 从设置页进入登录页：切换到扫码登录 tab 并自动开始获取二维码
+    loginBtn.addEventListener('click', () => {
+        state.previousTab = 'settings';
+        switchTab('login');
+        updateLoginUI();
+        if (!state.user) {
+            // 激活扫码登录 tab 并渲染对应表单
+            document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+            const qrTab = document.querySelector('.login-tab[data-type="QRcode"]');
+            if (qrTab) { qrTab.classList.add('active'); state.loginType = 'QRcode'; }
+            renderLoginForm('QRcode');
+            // renderLoginForm 已绑定 qrPlaceholder 点击事件，直接调用启动扫码
+            startQrLogin();
+        }
+    });
+
+    // 登录页返回按钮
+    loginBackBtn.addEventListener('click', () => { stopQrLogin(); switchTab(state.previousTab || 'all'); });
+
+    // 登录表单内按钮的事件委托（因为这些按钮是动态渲染的，直接在 #loginMethod 上委托）
+    const loginMethod = document.getElementById('loginMethod');
+    loginMethod.addEventListener('click', async (e) => {
+        // 账号密码登录按钮
+        if (state.loginType === 'account') {
+            const submitBtn = e.target.closest('.login-submit-btn');
+            const phone = document.getElementById('loginPhone')?.value?.trim();
+            const password = document.getElementById('loginPassword')?.value?.trim();
+            if (!phone || !password) { alert('请输入手机号和密码'); return; }
+            submitBtn.textContent = '登录中...'; submitBtn.disabled = true;
+            const result = await loginWithPhone(phone, password);
+            submitBtn.textContent = '登录'; submitBtn.disabled = false;
+            if (result.success) {
+                // cookie 已由 loginWithPhone 内部保存，这里只需更新UI
+                stopQrLogin();              // 停止二维码轮询
+                renderUserStatus();         // 更新UI显示
+                //TODO:await loadNeteasePlaylists();    // 加载歌单
+                setTimeout(() => switchTab('playlists'), 1000); // 1秒后跳转到首页
+            } else alert(result.msg);
+        }
+        // 手机号验证码登录
+        if (state.loginType === 'phone') {
+            const getCodeBtn = e.target.closest('.login-get-indentify-code-btn');
+            const submitBtn = e.target.closest('.login-indentify-submit-btn');
+            const phone = document.getElementById('loginPhone')?.value?.trim();
+            if (getCodeBtn) {
+                if (!phone) { alert('请输入手机号'); return; }
+                getCodeBtn.textContent = '发送中...'; getCodeBtn.disabled = true;
+                const result = await sendIdentifyCode(phone);
+                getCodeBtn.textContent = '获取验证码'; getCodeBtn.disabled = false;
+                if (result.success) alert('验证码已发送，请注意查收');
+                else alert(result.msg);
+            }
+            if (submitBtn) {
+                const code = document.getElementById('loginIdentifyCode')?.value?.trim();
+                if (!phone || !code) { alert('请输入手机号和验证码'); return; }
+                submitBtn.textContent = '登录中...'; submitBtn.disabled = true;
+                const result = await loginWithIdentifyCode(phone, code);
+                submitBtn.textContent = '登录'; submitBtn.disabled = false;
+                if (result.success) {
+                    // cookie 已由 loginWithIdentifyCode 内部保存，这里只需更新UI
+                    stopQrLogin();              // 停止二维码轮询
+                    renderUserStatus();         // 更新UI显示
+                    //TODO:await loadNeteasePlaylists();    // 加载歌单
+                    setTimeout(() => switchTab('playlists'), 1000); // 1秒后跳转到首页
+                } else alert(result.msg);
+            }
+        }
+    });
+
+    // 退出登录
+    if (logoutBtn) logoutBtn.addEventListener('click', async () => {
+        await logout();
+        state.neteasePlaylists = [];
+        state.neteaseAlbums = [];
+        renderUserStatus();
+        renderNeteasePlaylists();
+        renderSidebarPlaylists();
+        alert('已退出登录');
+    });
 }
 /* ============================
    应用初始化
@@ -490,7 +583,15 @@ async function init() {
     updateModeBtn();          // 播放模式按钮
     setupPlayerBar();         // 播放器栏事件
     setupLoginTabs();         // 登录方式切换
+    setupLogin();             // 登录功能
     await loadPlayerState();
+
+    // 6. 如果已登录，加载用户信息和歌单
+    if (state.cookie) {
+        await fetchUserInfo();
+        renderUserStatus();
+        //TODO:await loadNeteasePlaylists();
+    }
 }
 
 init();

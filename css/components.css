@@ -403,6 +403,12 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     padding: 40px 32px;
 }
+/* 登录方式区域 */
+.login-content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
 /* 登录Logo区域 */
 .login-logo {
     text-align: center;
@@ -436,6 +442,7 @@
 .login-qr-area {
     flex: 1;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
 }
@@ -569,4 +576,54 @@
     background: var(--bg);           /* 白色背景，从灰色轨道中突出 */
     color: var(--text);
     box-shadow: 0 1px 3px rgba(0,0,0,0.08); /* 微阴影增强立体感 */
+}
+
+/* ============================
+   用户信息区域（登录后显示）
+   头像 + 昵称 + ID + 退出按钮
+   ============================ */
+.login-user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius);
+    margin-top: 20px;
+}
+
+/* 用户头像 */
+.user-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(var(--theme-color-rgb), 0.3), rgba(var(--theme-color-rgb), 0.1));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* 用户详情（昵称+ID） */
+.user-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.user-details h3 {
+    font-size: 1.1em;
+    margin-bottom: 2px;
+}
+
+.user-details p {
+    font-size: 0.857em;
+    color: var(--text-secondary);
 }

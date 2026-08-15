@@ -282,21 +282,24 @@
                 <div class="login-container">
                     <!--登录卡片-->
                     <div class="login-card" id="loginCard">
-                        <div class="login-logo">
-                            <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55C7.79 13 6 14.79 6 17s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
-                            </svg>
-                            <h2>Music</h2>
-                            <p>登录以同步你的歌单和收藏</p>
+                        <div class="login-content">
+                            <div class="login-logo">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55C7.79 13 6 14.79 6 17s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                                </svg>
+                                <h2>Music</h2>
+                                <p>登录以同步你的歌单和收藏</p>
+                            </div>
+                            <div class="login-tabs" id="loginTabs">
+                                <button class="login-tab active" data-type="account">账号密码登录</button>
+                                <button class="login-tab" data-type="phone">验证码登录</button>
+                                <button class="login-tab" data-type="QRcode">扫码登录</button>
+                            </div>
+                            <div id="loginView">
+                                <div class="login-method" id="loginMethod"></div>
+                            </div>
                         </div>
-                        <div class="login-tabs" id="loginTabs">
-                            <button class="login-tab active" data-type="account">账号密码登录</button>
-                            <button class="login-tab" data-type="phone">验证码登录</button>
-                            <button class="login-tab" data-type="QRcode">扫码登录</button>
-                        </div>
-                        <div id="loginView">
-                            <div class="login-method" id="loginMethod"></div>
-                        </div>
+                        <!-- 登陆后用户信息区域 -->
                         <div class="login-user-info" id="loginUserInfo" style="display:none">
                             <div class="user-avatar" id="userAvatar"></div>
                             <div class="user-details">
