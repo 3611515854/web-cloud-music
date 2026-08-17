@@ -27,8 +27,17 @@ async function playSong(song) {
     state.currentSong = song;//当前播放音乐设置为选中的音乐
     state.isPlaying = true;//设置播放状态
 
-    //网易云歌曲处理
-    //TODO: 
+    // ---- 网易云歌曲处理 ----
+    // URL可能过期或缺失，需要重新获取
+    if (song.neteaseId && !song.audioUrl) {
+        const url = await getSongUrl(song.neteaseId);
+        if (!url) { alert('无法获取播放链接'); state.isPlaying = false; updatePlayButtons(); return; }
+        song.audioUrl = url;
+    }
+    // 歌词也需要异步获取
+    if (song.neteaseId && !song.lrcText) {
+        song.lrcText = await getLyric(song.neteaseId);
+    }
 
     //本地音乐播放，没有audioUrl说明播放异常
     if (!song.audioUrl) {
