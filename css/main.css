@@ -461,3 +461,24 @@
 .playlist-detail-info .content-header {
     margin-bottom: 0;      /* 详情页标题栏不需要下方间距 */
 }
+
+/* ============================
+   每日推荐区域
+   渐变背景卡片 + 歌曲列表
+   ============================ */
+.daily-info {
+    margin-bottom: 20px;
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(var(--theme-color-rgb), 0.1), rgba(var(--theme-color-rgb), 0.05)); /* 主题色微渐变 */
+    border-radius: var(--radius);
+}
+
+.daily-info h2 {
+    font-size: 1.2em;
+    margin-bottom: 4px;
+}
+
+.daily-info p {
+    font-size: 0.857em;
+    color: var(--text-secondary);
+}

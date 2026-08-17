@@ -218,8 +218,7 @@ function switchTab(tab) {
     }
     // 切换到每日推荐时，加载推荐歌曲
     if (tab === 'daily') {
-        // TODO: 每日推荐功能待实现
-        //loadDailyRecommend();  
+        loadDailyRecommend();  
     }
     // ---- 激活对应的导航按钮和内容区 ----
     if (tab === 'settings') {
@@ -239,12 +238,6 @@ function switchTab(tab) {
 document.querySelectorAll('.nav-item[data-tab]').forEach(item => {
     item.addEventListener('click', () => switchTab(item.dataset.tab))
 })
-
-// // 设置按钮
-// const settingsBtn = document.getElementById('settingsBtn');
-// if (settingsBtn) {
-//     settingsBtn.addEventListener('click', () => switchTab('settings'))
-// }
 
 // 返回按钮、登录按钮、登录返回按钮
 document.getElementById('settingsBackBtn').addEventListener('click', () => switchTab(state.previousTab || 'all'));
@@ -391,7 +384,35 @@ function renderMusicList() {
 }
 // 搜索框输入时实时过滤音乐列表
 document.getElementById('searchInput').addEventListener('input', renderMusicList);
+/* ============================
+   每日推荐
+   ============================ */
+async function loadDailyRecommend() {
+    const list = document.getElementById('dailyList');
+    const info = document.getElementById('dailyInfo');
+    const today = new Date();
 
+    // 显示今日日期
+    info.innerHTML = `<h2>${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日 每日推荐</h2><p>根据你的口味生成，每天6:00更新</p>`;
+    list.innerHTML = '<div class="search-loading">加载中...</div>';
+    const songs = await getDailyRecommend();
+    // 未登录或无数据时提示
+    if (songs.length === 0) { list.innerHTML = `<div class="empty-state"><svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM9 10H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/></svg><p>请先登录以获取每日推荐</p></div>`; return; }
+    list.innerHTML = songs.map(s => {
+        const artists = (s.ar || []).map(a => a.name).join(' / ');
+        const coverUrl = s.al && s.al.picUrl ? s.al.picUrl + '?param=800y800' : null;
+        return `<div class="music-item" data-id="${s.id}" data-name="${s.name}" data-artist="${artists}" data-cover="${coverUrl || ''}"><div class="cover">${coverUrl ? `<img src="${coverUrl}">` : `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55C7.79 13 6 14.79 6 17s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>`}</div><div class="info"><div class="title">${s.name}</div><div class="artist">${artists}</div></div><div class="playing-indicator"><span></span><span></span><span></span></div></div>`;
+    }).join('');
+    //给每首歌加点击事件
+    list.querySelectorAll('.music-item').forEach(item => {
+        item.addEventListener('click', async () => {
+            state.playQueue = songs.map(s => ({ id: s.id, title: s.name, artist: (s.ar || []).map(a => a.name).join(' / '), coverUrl: s.al && s.al.picUrl ? s.al.picUrl + '?param=800y800' : null, neteaseId: s.id }));
+            const queueSong = state.playQueue.find(s => s.neteaseId === parseInt(item.dataset.id));
+            await playSong(queueSong);
+        });
+    });
+    updatePlayingState();
+}
 /* ============================
    歌单管理 - 事件绑定
    新建、删除、歌单标签页切换
@@ -699,6 +720,7 @@ async function init() {
     setupPlaylists();         // 歌单管理
     setupLoginTabs();         // 登录方式切换
     setupLogin();             // 登录功能
+    //setupDailyRecommend();    // 每日推荐
     await loadPlayerState();
 
     // 6. 如果已登录，加载用户信息和歌单
