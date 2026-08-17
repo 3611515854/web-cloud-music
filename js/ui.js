@@ -428,7 +428,7 @@ function setupPlaylists() {
     // document.getElementById('playlistNameInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') createPlaylist(); });
 
     // 歌单详情页的返回/删除
-    //TODO:document.getElementById('playlistBackBtn').addEventListener('click', closePlaylistDetail);
+    document.getElementById('playlistBackBtn').addEventListener('click', closePlaylistDetail);
     //TODO:document.getElementById('deletePlaylistBtn').addEventListener('click', deletePlaylist);
 
     // 歌单标签页切换（本地/创建/收藏/专辑）
@@ -441,7 +441,16 @@ function setupPlaylists() {
         });
     });
 }
-
+//歌单详情页的返回
+function closePlaylistDetail() {
+    state.viewingPlaylistId = null;
+    // 恢复网格视图
+    document.getElementById('playlistGridView').style.display = 'block';
+    document.getElementById('playlistDetailView').style.display = 'none';
+    document.getElementById('playlistHeader').style.display = 'flex';
+    document.getElementById('playlistTabs').style.display = 'flex';
+    renderNeteasePlaylists();
+}
 /* ============================
    加载网易云歌单和专辑
    登录后调用，获取用户的歌单列表
@@ -526,7 +535,132 @@ function renderSidebarPlaylists() {
         item.addEventListener('click', () => { switchTab('playlists'); openNeteasePlaylistDetail(parseInt(item.dataset.id), 'playlist'); });
     });
 }
+/* ============================
+   打开网易云歌单/专辑详情
+   调用API获取歌单详情和歌曲列表
+   ============================ */
+async function openNeteasePlaylistDetail(id, type) {
+    state.viewingPlaylistId = id;
+    // 切换视图：隐藏网格，显示详情
+    document.getElementById('playlistGridView').style.display = 'none';
+    document.getElementById('playlistDetailView').style.display = 'block';
+    document.getElementById('playlistHeader').style.display = 'none';
+    document.getElementById('playlistTabs').style.display = 'none';
 
+    const detail = document.getElementById('playlistMusicList');
+    detail.innerHTML = '<div class="search-loading">加载中...</div>';
+
+    // 根据类型调用不同API
+    let playlist = null;
+    if (type === 'playlist') {
+        const data = await apiFetch('/playlist/detail', { id });
+        if (data.code === 200 && data.playlist) playlist = data.playlist;
+    } else {
+        // 专辑详情
+        const data = await apiFetch('/album', { id });
+        if (data.code === 200 && data.songs) {
+            playlist = { name: data.album?.name || '专辑', coverImgUrl: data.album?.picUrl, tracks: data.songs, trackIds: data.songs.map(s => s.id) };
+        }
+    }
+
+    if (!playlist) { detail.innerHTML = '<div class="empty-state"><p>加载失败</p></div>'; return; }
+
+    // 设置标题和封面
+    document.getElementById('playlistDetailTitle').textContent = playlist.name;
+    const coverEl = document.getElementById('playlistDetailCover');
+    if (playlist.coverImgUrl) { coverEl.style.backgroundImage = `url('${playlist.coverImgUrl}?param=300y300')`; coverEl.innerHTML = ''; }
+    else { coverEl.style.backgroundImage = 'none'; coverEl.innerHTML = '<svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M15 6H3v2h12V6zm0 4H3v2h12v-2zM3 16h8v-2H3v2zM17 6v8.18c-.31-.11-.65-.18-1-.18-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3V8h3V6h-5z"/></svg>'; }
+
+    // 获取歌曲详情（API可能只返回trackIds，需要批量查询）
+    const trackIds = (playlist.trackIds || []).map(t => t.id !== undefined ? t.id : t);
+    let tracks = playlist.tracks || [];
+
+    // 如果trackIds数量大于tracks，需要批量请求歌曲详情（每批500首）
+    if (trackIds.length > tracks.length) {
+        tracks = [];
+        const batchSize = 500;
+        for (let i = 0; i < trackIds.length; i += batchSize) {
+            const batch = trackIds.slice(i, i + batchSize);
+            const ids = batch.join(',');
+            const songData = await apiFetch('/song/detail', { ids });
+            if (songData.code === 200 && songData.songs) tracks.push(...songData.songs);
+        }
+    }
+
+    if (tracks.length === 0) { detail.innerHTML = '<div class="empty-state"><p>歌单为空</p></div>'; return; }
+
+    // 渲染歌曲列表（使用懒加载封面）
+    detail.innerHTML = tracks.map(s => {
+        const artists = (s.ar || []).map(a => a.name).join(' / ');
+        const coverUrl = s.al && s.al.picUrl ? s.al.picUrl + '?param=100y100' : null;
+        const isPlaying = state.currentSong?.neteaseId === s.id || state.currentSong?.id === s.id;
+        return `<div class="music-item ${isPlaying ? 'playing' : ''}" data-id="${s.id}" data-name="${s.name}" data-artist="${artists}" data-cover="${coverUrl || ''}"><div class="cover">${coverUrl ? `<img data-src="${coverUrl}">` : '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55C7.79 13 6 14.79 6 17s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>'}</div><div class="info"><div class="title">${s.name}</div><div class="artist">${artists}</div></div><div class="playing-indicator"><span></span><span></span><span></span></div></div>`;
+    }).join('');
+
+    // 设置封面懒加载
+    setupLazyCoverLoading(detail);
+
+    // 绑定点击播放事件
+    detail.querySelectorAll('.music-item').forEach(item => {
+        item.addEventListener('click', async () => {
+            state.playQueue = tracks.map(s => ({ id: s.id, title: s.name, artist: (s.ar || []).map(a => a.name).join(' / '), coverUrl: s.al && s.al.picUrl ? s.al.picUrl + '?param=100y100' : null, neteaseId: s.id }));
+            const queueSong = state.playQueue.find(s => s.neteaseId === parseInt(item.dataset.id));
+            await playSong(queueSong);
+        });
+    });
+}
+
+/* ============================
+   封面图片懒加载
+   使用 IntersectionObserver，滚动到可视区域时才加载图片
+   ============================ */
+function setupLazyCoverLoading(container) {
+    // 清理之前的观察者
+    if (container._coverObserver) container._coverObserver.disconnect();
+    const pendingImages = [];
+
+    // 创建观察者，当图片进入可视区域（含200px预加载距离）时触发
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const img = entry.target;
+                if (img.dataset.src && !img.src) {
+                    pendingImages.push(img);
+                }
+                observer.unobserve(img); // 停止观察已触发的图片
+            }
+        });
+
+        // 批量加载（每批30张，间隔30ms避免卡顿）
+        if (pendingImages.length > 0) {
+            loadCoverBatch(pendingImages.splice(0, 30));
+        }
+    }, { root: document.querySelector('.main'), rootMargin: '200px' }); // 200px预加载距离
+
+    // 观察所有带data-src的图片
+    container.querySelectorAll('img[data-src]').forEach(img => observer.observe(img));
+    container._coverObserver = observer;
+
+    // 立即加载前30张（首屏可见的）
+    const firstBatch = container.querySelectorAll('img[data-src]');
+    loadCoverBatch(Array.from(firstBatch).slice(0, 30));
+}
+
+/* ============================
+   批量加载封面图片
+   每张间隔30ms，避免同时发起太多请求
+   ============================ */
+function loadCoverBatch(images) {
+    const valid = images.filter(img => img.dataset.src);
+    valid.forEach((img, i) => {
+        setTimeout(() => {
+            if (img.dataset.src) {
+                img.src = img.dataset.src;
+                img.removeAttribute('data-src'); // 加载后移除data-src，避免重复加载
+            }
+        }, i * 30); // 每张间隔30ms
+    });
+}
 /* ============================
    登录方式管理 - 事件绑定
    账号密码/验证码/扫码 四个标签，切换时动态加载对应的登录表单

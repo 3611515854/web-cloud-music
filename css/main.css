@@ -482,3 +482,11 @@
     font-size: 0.857em;
     color: var(--text-secondary);
 }
+/* ============================
+   搜索加载中提示
+   ============================ */
+.search-loading {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-secondary);
+}
