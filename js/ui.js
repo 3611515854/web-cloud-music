@@ -393,6 +393,120 @@ function renderMusicList() {
 document.getElementById('searchInput').addEventListener('input', renderMusicList);
 
 /* ============================
+   歌单管理 - 事件绑定
+   新建、删除、歌单标签页切换
+   ============================ */
+function setupPlaylists() {
+    // // 新建歌单按钮（两个入口：侧边栏 + 主内容区）
+    // document.getElementById('newPlaylistBtn').addEventListener('click', openNewPlaylist);
+    // document.querySelector('.add-playlist-btn').addEventListener('click', openNewPlaylist);
+
+    // // 新建歌单弹窗的取消/确认/回车
+    // document.getElementById('cancelPlaylistBtn').addEventListener('click', closeNewPlaylist);
+    // document.getElementById('confirmPlaylistBtn').addEventListener('click', createPlaylist);
+    // document.getElementById('playlistNameInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') createPlaylist(); });
+
+    // 歌单详情页的返回/删除
+    //TODO:document.getElementById('playlistBackBtn').addEventListener('click', closePlaylistDetail);
+    //TODO:document.getElementById('deletePlaylistBtn').addEventListener('click', deletePlaylist);
+
+    // 歌单标签页切换（本地/创建/收藏/专辑）
+    document.querySelectorAll('.playlist-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.playlist-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            state.currentPlaylistTab = tab.dataset.type;
+            renderNeteasePlaylists();
+        });
+    });
+}
+
+/* ============================
+   加载网易云歌单和专辑
+   登录后调用，获取用户的歌单列表
+   ============================ */
+async function loadNeteasePlaylists() {
+    //没有登录时 清空歌单和专辑列表
+    if (!state.user){
+        state.neteasePlaylists = [];
+        state.neteaseAlbums = [];
+        return;
+    };
+    state.neteasePlaylists = await getUserPlayLists(state.user.userId);
+    state.neteaseAlbums = await getUserAlbums(state.user.userId);
+    //渲染歌单和专辑到UI
+    renderNeteasePlaylists();
+    //渲染侧边栏歌单列表
+    renderSidebarPlaylists();
+}
+
+/* ============================
+   渲染歌单网格
+   根据当前标签（local/created/collected/album）显示不同内容
+   ============================ */
+function renderNeteasePlaylists() {
+    const grid = document.getElementById('playlistsGrid');
+    // ---- 网易云歌单（需登录） ----
+    if (!state.user) {
+        if (state.currentPlaylistTab === 'created') {
+            grid.innerHTML = '<div class="empty-state"><p>请先登录以查看创建的歌单</p></div>';
+        } else {
+            grid.innerHTML = '<div class="empty-state"><p>请先登录以查看歌单</p></div>';
+        }
+        return;
+    }
+    // 区分用户创建的歌单和收藏的歌单
+    const created = state.neteasePlaylists.filter(p => p.creator.userId === state.user.userId);
+    const collected = state.neteasePlaylists.filter(p => p.creator.userId !== state.user.userId);
+
+    let items = [];
+    if(state.currentPlaylistTab === 'created') items = created;
+    else if (state.currentPlaylistTab === 'collected') items = collected;
+    else items = state.neteaseAlbums;
+
+    if (items.length === 0) { grid.innerHTML = '<div class="empty-state"><p>暂无内容</p></div>'; return; }
+    // ---- 专辑标签渲染 ----
+    if (state.currentPlaylistTab === 'album') {
+        grid.innerHTML = items.map(a => {
+            const cover = a.picUrl ? a.picUrl + '?param=300y300' : null;
+            return `<div class="playlist-card" data-id="${a.id}" data-type="album"><div class="card-cover" ${cover ? `style="background-image:url('${cover}')"` : ''}>${!cover ? '<svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55C7.79 13 6 14.79 6 17s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>' : ''}</div><div class="card-info"><div class="name">${a.name}</div><div class="count">${a.size || 0} 首歌曲</div></div></div>`;
+        }).join('');
+    } else {
+        // ---- 网易云歌单渲染 ----
+        grid.innerHTML = items.map(p => {
+            const cover = p.coverImgUrl ? p.coverImgUrl + '?param=300y300' : null;
+            return `<div class="playlist-card" data-id="${p.id}" data-type="playlist"><div class="card-cover" ${cover ? `style="background-image:url('${cover}')"` : ''}>${!cover ? '<svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M15 6H3v2h12V6zm0 4H3v2h12v-2zM3 16h8v-2H3v2zM17 6v8.18c-.31-.11-.65-.18-1-.18-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3V8h3V6h-5z"/></svg>' : ''}</div><div class="card-info"><div class="name">${p.name}</div><div class="count">${p.trackCount || 0} 首歌曲</div></div></div>`;
+        }).join('');
+    }
+
+    // 绑定卡片点击事件 - 打开歌单/专辑详情
+    grid.querySelectorAll('.playlist-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const id = parseInt(card.dataset.id);
+            const type = card.dataset.type;
+            openNeteasePlaylistDetail(id, type);
+        });
+    });
+}
+/* ============================
+   渲染侧边栏歌单列表
+   只显示用户创建的网易云歌单
+   ============================ */
+function renderSidebarPlaylists() {
+    const list = document.getElementById('playlistsList');
+    if (!state.user) { list.innerHTML = '<div class="playlist-item" style="color:var(--text-secondary);font-size:0.857em">请先登录</div>'; return; }
+    const created = state.neteasePlaylists.filter(p => p.creator.userId === state.user.userId);
+    list.innerHTML = created.map(p => {
+        const cover = p.coverImgUrl ? p.coverImgUrl + '?param=100y100' : null;
+        return `<div class="playlist-item" data-id="${p.id}"><div class="playlist-item-cover" style="width:40px;height:40px;${cover ? `background-image:url('${cover}')` : ''}">${!cover ? `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M15 6H3v2h12V6zm0 4H3v2h12v-2zM3 16h8v-2H3v2zM17 6v8.18c-.31-.11-.65-.18-1-.18-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3V8h3V6h-5z"/></svg>` : ''}</div><span>${p.name}</span></div>`;
+    }).join('');
+    // 点击侧边栏歌单 → 跳转到歌单页并打开详情
+    list.querySelectorAll('.playlist-item').forEach(item => {
+        item.addEventListener('click', () => { switchTab('playlists'); openNeteasePlaylistDetail(parseInt(item.dataset.id), 'playlist'); });
+    });
+}
+
+/* ============================
    登录方式管理 - 事件绑定
    账号密码/验证码/扫码 四个标签，切换时动态加载对应的登录表单
    ============================ */
@@ -514,7 +628,7 @@ function setupLogin() {
                 // cookie 已由 loginWithPhone 内部保存，这里只需更新UI
                 stopQrLogin();              // 停止二维码轮询
                 renderUserStatus();         // 更新UI显示
-                //TODO:await loadNeteasePlaylists();    // 加载歌单
+                await loadNeteasePlaylists();    // 加载歌单
                 setTimeout(() => switchTab('playlists'), 1000); // 1秒后跳转到首页
             } else alert(result.msg);
         }
@@ -541,7 +655,7 @@ function setupLogin() {
                     // cookie 已由 loginWithIdentifyCode 内部保存，这里只需更新UI
                     stopQrLogin();              // 停止二维码轮询
                     renderUserStatus();         // 更新UI显示
-                    //TODO:await loadNeteasePlaylists();    // 加载歌单
+                    await loadNeteasePlaylists();    // 加载歌单
                     setTimeout(() => switchTab('playlists'), 1000); // 1秒后跳转到首页
                 } else alert(result.msg);
             }
@@ -582,6 +696,7 @@ async function init() {
     setupVolume();            // 音量控制
     updateModeBtn();          // 播放模式按钮
     setupPlayerBar();         // 播放器栏事件
+    setupPlaylists();         // 歌单管理
     setupLoginTabs();         // 登录方式切换
     setupLogin();             // 登录功能
     await loadPlayerState();
@@ -590,7 +705,7 @@ async function init() {
     if (state.cookie) {
         await fetchUserInfo();
         renderUserStatus();
-        //TODO:await loadNeteasePlaylists();
+        await loadNeteasePlaylists();
     }
 }
 

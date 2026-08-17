@@ -336,3 +336,128 @@
 }
 
 .btn-secondary:hover { background: var(--border); }
+
+/* ============================
+   歌单标签页切换栏
+   创建/收藏/专辑 四个标签，药丸形选中效果
+   ============================ */
+.playlist-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 20px;
+    padding: 4px;           /* 内缩padding，形成轨道效果 */
+    background: var(--bg-secondary); /* 灰色轨道背景 */
+    border-radius: var(--radius-sm);
+    width: fit-content;     /* 宽度由内容撑开 */
+}
+
+.playlist-tab {
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 0.857em;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.playlist-tab:hover {
+    color: var(--text);
+}
+
+/* 激活标签 - 白色背景+阴影，形成"凸起"效果 */
+.playlist-tab.active {
+    background: var(--bg);           /* 白色背景，从灰色轨道中突出 */
+    color: var(--text);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08); /* 微阴影增强立体感 */
+}
+
+/* ============================
+   歌单网格布局
+   自适应列数，最小宽度180px
+   ============================ */
+.playlists-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* 自适应列数 */
+    gap: 16px;
+}
+
+/* 单个歌单卡片 */
+.playlist-card {
+    background: var(--bg-secondary);
+    border-radius: var(--radius);
+    padding: 12px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* 卡片悬停 - 上浮+阴影增强 */
+.playlist-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+}
+
+/* 歌单封面（正方形） */
+.playlist-card .card-cover {
+    width: 100%;
+    aspect-ratio: 1;        /* 1:1正方形 */
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, rgba(var(--theme-color-rgb), 0.25), rgba(var(--theme-color-rgb), 0.08));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    background-size: cover;
+    background-position: center;
+    color: var(--text-secondary);
+}
+
+/* 歌单名称 */
+.playlist-card .card-info .name {
+    font-weight: 500;
+    margin-bottom: 2px;
+}
+
+/* 歌单歌曲数 */
+.playlist-card .card-info .count {
+    font-size: 0.857em;
+    color: var(--text-secondary);
+}
+
+/* ============================
+   歌单详情页头部
+   封面（180x180）+ 歌单信息
+   ============================ */
+.playlist-detail-header {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 24px;
+    align-items: flex-start;
+}
+
+/* 歌单大封面 */
+.playlist-detail-cover {
+    width: 180px;
+    height: 180px;
+    border-radius: var(--radius);
+    background: linear-gradient(135deg, rgba(var(--theme-color-rgb), 0.25), rgba(var(--theme-color-rgb), 0.08));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background-size: cover;
+    background-position: center;
+    color: var(--text-secondary);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08); /* 大阴影增强立体感 */
+}
+
+.playlist-detail-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.playlist-detail-info .content-header {
+    margin-bottom: 0;      /* 详情页标题栏不需要下方间距 */
+}

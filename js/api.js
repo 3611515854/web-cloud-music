@@ -208,7 +208,7 @@ async function startQrLogin() {
             localStorage.setItem('netease_cookie', state.cookie);
             await fetchUserInfo();           // 获取用户信息
             renderUserStatus();              // 更新UI显示
-            await loadNeteasePlaylists();    // 加载歌单
+            //TODO:await loadNeteasePlaylists();    // 加载歌单
             qrStatus.textContent = '登录成功！';
             setTimeout(() => switchTab('playlists'), 1000); // 1秒后跳转到首页
 
@@ -304,7 +304,7 @@ async function getLyric(id) {
    获取用户的网易云歌单列表
    uid: 用户ID
    ============================ */
-async function getUserPlaylists(uid) {
+async function getUserPlayLists(uid) {
     try {
         const data = await apiFetch('/user/playlist', { uid, limit: 50 });
         if (data.code === 200 && data.playlist) return data.playlist;
