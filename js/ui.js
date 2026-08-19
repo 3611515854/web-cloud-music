@@ -828,11 +828,71 @@ function setupLogin() {
         alert('已退出登录');
     });
 }
+
+/* ============================
+   搜索功能
+   侧边栏搜索框回车触发网易云搜索
+   ============================ */
+function setupSearch() {
+    const navInput = document.getElementById('navSearchInput');
+    navInput.addEventListener('keydown', async (e) => {
+        if(e.key === 'Enter') {
+            const q = navInput.value.trim();
+            if (!q) return;
+            switchTab('search');
+            renderSearchResults(await searchMusic(q), q);
+        }
+    });
+    //搜索结果页返回按钮
+    document.getElementById('searchBackBtn').addEventListener('click', () => switchTab(state.previousTab || 'all'));
+}
+// 渲染网易云搜索结果
+async function renderSearchResults(songs, query) {
+    const list = document.getElementById('searchResults');
+    if (songs.length === 0) { 
+        list.innerHTML = `
+        <div class="empty-state">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+            </svg>
+            <p>未找到 "${query}" 相关结果</p>
+        </div>`; 
+        return; 
+    }
+    list.innerHTML = songs.map(s => {
+        const artists = (s.ar || []).map(a => a.name).join(' / ');
+        const coverUrl = s.al && s.al.picUrl ? s.al.picUrl + '?param=800y800' : null;
+        return 
+        `<div class="music-item" data-id="${s.id}" data-name="${s.name}" data-artist="${artists}" data-cover="${coverUrl || ''}">
+            <div class="cover">
+                ${coverUrl ? `<img src="${coverUrl}">` : `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55C7.79 13 6 14.79 6 17s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                </svg>`}
+            </div>
+            <div class="info">
+                <div class="title">${s.name}</div>
+                <div class="artist">${artists}</div>
+            </div>
+            <div class="playing-indicator">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>`;
+    }).join('');
+    // 绑定播放事件
+    list.querySelectorAll('.music-item').forEach(item => {
+        item.addEventListener('click', async () => {
+            state.playQueue = songs.map(s => ({ id: s.id, title: s.name, artist: (s.ar || []).map(a => a.name).join(' / '), coverUrl: s.al && s.al.picUrl ? s.al.picUrl + '?param=800y800' : null, neteaseId: s.id }));
+            const queueSong = state.playQueue.find(s => s.neteaseId === parseInt(item.dataset.id));
+            await playSong(queueSong);
+        });
+    });
+}
 /* ============================
    应用初始化
    页面加载完成后执行，恢复状态并绑定所有事件
    ============================ */
-
 async function init() {
     //加载持久化数据
     loadSettings();           // 从localStorage加载设置
@@ -854,8 +914,8 @@ async function init() {
     setupPlaylists();         // 歌单管理
     setupLoginTabs();         // 登录方式切换
     setupLogin();             // 登录功能
-    //setupDailyRecommend();    // 每日推荐
-    await loadPlayerState();
+    await loadPlayerState();  // 恢复上次播放状态
+    setupSearch();            // 搜索功能          
 
     // 6. 如果已登录，加载用户信息和歌单
     if (state.cookie) {
