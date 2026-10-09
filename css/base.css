@@ -16,6 +16,8 @@
     --radius-full: 9999px;
     --font-size: 14px;
     --lyric-size: 20px;
+    --header-height: 50px;
+    --header-search-width: 300px;
 }
 /*重置全局样式*/
 * {
@@ -37,5 +39,5 @@ body {
 /*整体布局容器初始化*/
 .app {
     display: flex;/*flex布局，让侧边栏和主内容水平布局*/
-    height: calc(100vh - var(--player-height));/*)	高度 = 视口高度 - 底部播放器高度(72px)，确保主内容区不被播放器遮挡*/
+    height: calc(100vh - var(--player-height) - var(--header-height));/*)	高度 = 视口高度 - 底部播放器高度(72px) - 头部高度，确保主内容区不被播放器和头部遮挡*/
 }

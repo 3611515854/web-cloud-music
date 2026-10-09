@@ -29,10 +29,10 @@
 }
 
 /* ============================
-   侧边栏搜索框
+   顶部搜索框
    包含搜索图标 + 输入框，白色背景+边框
    ============================ */
-.nav-search-box {
+.header-search-box {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -41,14 +41,16 @@
     border: 1px solid var(--border);/* 浅灰色边框 */
     border-radius: var(--radius-sm);
     margin-bottom: 8px;
+    margin-top: 8px;
+    width: var(--header-search-width); /* 搜索框宽度 */
 }
 /* 搜索图标灰色 */
-.nav-search-box svg {
+.header-search-box svg {
     color: var(--text-secondary);
     flex-shrink: 0;
 }
 /* 搜索输入框 */
-.nav-search-box input {
+.header-search-box input {
     border: none;           /* 去掉边框，由父容器提供 */
     background: transparent;/* 透明背景 */
     outline: none;          /* 去掉焦点轮廓（由父容器 focus-within 替代） */
@@ -57,11 +59,11 @@
     color: var(--text);
 }
 /* 输入框占位符灰色 */
-.nav-search-box input::placeholder {
+.header-search-box input::placeholder {
     color: var(--text-secondary);
 }
 /* 搜索框获得焦点时 - 边框变为主题色 */
-.nav-search-box:focus-within {
+.header-search-box:focus-within {
     border-color: var(--theme-color);
 }
 
