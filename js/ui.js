@@ -862,8 +862,7 @@ async function renderSearchResults(songs, query) {
     list.innerHTML = songs.map(s => {
         const artists = (s.ar || []).map(a => a.name).join(' / ');
         const coverUrl = s.al && s.al.picUrl ? s.al.picUrl + '?param=800y800' : null;
-        return 
-        `<div class="music-item" data-id="${s.id}" data-name="${s.name}" data-artist="${artists}" data-cover="${coverUrl || ''}">
+        return `<div class="music-item" data-id="${s.id}" data-name="${s.name}" data-artist="${artists}" data-cover="${coverUrl || ''}">
             <div class="cover">
                 ${coverUrl ? `<img src="${coverUrl}">` : `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55C7.79 13 6 14.79 6 17s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>

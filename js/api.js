@@ -208,7 +208,7 @@ async function startQrLogin() {
             localStorage.setItem('netease_cookie', state.cookie);
             await fetchUserInfo();           // 获取用户信息
             renderUserStatus();              // 更新UI显示
-            //TODO:await loadNeteasePlaylists();    // 加载歌单
+            await loadNeteasePlaylists();    // 加载歌单
             qrStatus.textContent = '登录成功！';
             setTimeout(() => switchTab('playlists'), 1000); // 1秒后跳转到首页
 
