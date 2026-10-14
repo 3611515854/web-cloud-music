@@ -1,23 +1,23 @@
-﻿//全局状态对象、常量定义
+// 全局状态对象、常量定义
 /* ============================
    常量定义
    ============================ */
 // "我喜欢的音乐" 歌单固定ID为0，不可删除
-const FAVORITES_ID = 0;
+export const FAVORITES_ID = 0;
 // 默认歌单列表，包含一个固定的"我喜欢的音乐"歌单
-const DEFAULT_PLAYLISTS = [{ id: FAVORITES_ID, name: '我喜欢的音乐', songs: [] }];
+export const DEFAULT_PLAYLISTS = [{ id: FAVORITES_ID, name: '我喜欢的音乐', songs: [] }];
 
 // 网易云API代理服务器地址
 // 页面加载时从 localStorage 读取用户自定义地址
 // 存取由 persistence.js 中的 saveApiBase() / loadApiBase() 管理
 // 用户在设置页的 #apiBaseInput 输入，ui.js 的 setupSettings 中绑定实时保存
-const API_BASE = localStorage.getItem('netease_api');
+export const API_BASE = localStorage.getItem('netease_api');
 
 /* ============================
    全局状态对象
    存储应用运行时的所有状态数据
    ============================ */
-const state  = {
+export const state = {
     loginType: 'account',        // account/phone/QRcode 登录方式
     musicList: [],          //本地音乐列表（从IndexeDB加载的歌曲数组）
     playlists: [],          //用户创建的本地歌单数组
@@ -48,13 +48,13 @@ const state  = {
    Audio 元素引用
    页面唯一的 <audio> 元素，所有音频播放都通过它
    ============================ */
-const audio = document.getElementById('audioPlayer');
+export const audio = document.getElementById('audioPlayer');
 
 /* ============================
    播放模式名称映射
    用于 UI 显示和 tooltip
    ============================ */
-const MODE_NAMES = ['顺序播放', '单曲循环', '随机播放'];
+export const MODE_NAMES = ['顺序播放', '单曲循环', '随机播放'];
 
 /* ============================
    文件扩展名集合
@@ -62,10 +62,10 @@ const MODE_NAMES = ['顺序播放', '单曲循环', '随机播放'];
    ============================ */
 
 // 支持的音频格式
-const AUDIO_EXTS = new Set(['.mp3', '.flac', '.wav', '.ogg', '.aac', '.m4a', '.wma', '.opus']);
+export const AUDIO_EXTS = new Set(['.mp3', '.flac', '.wav', '.ogg', '.aac', '.m4a', '.wma', '.opus']);
 
 // 支持的封面图片格式
-const COVER_EXTS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.bmp']);
+export const COVER_EXTS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.bmp']);
 
 // 支持的歌词文件格式
-const LRC_EXTS = new Set(['.lrc']);
+export const LRC_EXTS = new Set(['.lrc']);

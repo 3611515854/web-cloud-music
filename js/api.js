@@ -1,15 +1,18 @@
-﻿//网易云 API 调用、QR 登录、用户信息
+// 网易云 API 调用、QR 登录、用户信息
 /* ============================
    网易云音乐 API 封装
    所有与网易云服务器的通信都通过这里
    API代理服务器地址在 state.js 中定义
    ============================ */
 
+import { API_BASE, state } from './state.js';
+import { switchTab, loadNeteasePlaylists } from './ui.js';
+
 /* ============================
    GET 请求封装
    通用的 GET 请求函数，自动附加 cookie 和参数
    ============================ */
-async function apiFetch(path, params = {}) {
+export async function apiFetch(path, params = {}) {
     // 拼接完整URL
     const url = new URL(API_BASE + path);
 
@@ -33,7 +36,7 @@ async function apiFetch(path, params = {}) {
    POST 请求封装
    用于登录等需要POST的接口
    ============================ */
-async function apiPost(path, body = {}) {
+export async function apiPost(path, body = {}) {
     const url = new URL(API_BASE + path);
 
     // 附加cookie
@@ -51,7 +54,7 @@ async function apiPost(path, body = {}) {
 /* ============================
    手机号密码登录
    ============================ */
-async function loginWithPhone(phone, password) {
+export async function loginWithPhone(phone, password) {
     try {
         const data = await apiPost('/login/cellphone', { phone, password });
         if (data.code === 200) {
@@ -70,7 +73,7 @@ async function loginWithPhone(phone, password) {
 /* ============================
    发送验证码
    ============================ */
-async function sendIdentifyCode(phone) {
+export async function sendIdentifyCode(phone) {
     try {
         const data = await apiPost('/captcha/sent', { phone });
         if (data.code === 200) return { success: true };
@@ -85,7 +88,7 @@ async function sendIdentifyCode(phone) {
     传入 captcha 参数（此时 password 参数失效）。
     /captcha/verify 仅用于"校验验证码是否正确"，不登录也不返回 cookie。
     ============================ */
-async function loginWithIdentifyCode(phone, code) {
+export async function loginWithIdentifyCode(phone, code) {
     try {
         // 用验证码代替密码登录：/login/cellphone?phone=xxx&captcha=1234
         const data = await apiPost('/login/cellphone', { phone, captcha: code });
@@ -106,7 +109,7 @@ async function loginWithIdentifyCode(phone, code) {
    获取当前登录用户信息
    昵称、头像、用户ID等
    ============================ */
-async function fetchUserInfo() {
+export async function fetchUserInfo() {
     if (!state.cookie) return null;
     try {
         const data = await apiFetch('/user/account');
@@ -122,7 +125,7 @@ async function fetchUserInfo() {
    退出登录
    清除cookie和用户信息
    ============================ */
-async function logout() {
+export async function logout() {
     try { await apiFetch('/logout'); } catch {}
     state.cookie = '';
     state.user = null;
@@ -174,7 +177,7 @@ async function checkQrStatus(key) {
    二维码登录主流程
    获取key → 生成二维码 → 轮询状态 → 登录成功
    ============================ */
-async function startQrLogin() {
+export async function startQrLogin() {
     const qrImg = document.getElementById('qrCodeImg');
     const qrStatus = document.getElementById('qrStatus');
     const qrPlaceholder = document.getElementById('qrPlaceholder');
@@ -235,7 +238,7 @@ async function startQrLogin() {
    停止二维码轮询
    用户离开登录页或登录成功后调用
    ============================ */
-function stopQrLogin() {
+export function stopQrLogin() {
     if (qrCheckTimer) { clearInterval(qrCheckTimer); qrCheckTimer = null; }
 }
 
@@ -244,7 +247,7 @@ function stopQrLogin() {
    keywords: 搜索关键词
    limit: 返回数量（默认30）
    ============================ */
-async function searchMusic(keywords, limit = 30) {
+export async function searchMusic(keywords, limit = 30) {
     try {
         const data = await apiFetch('/cloudsearch', { keywords, limit, type: 1 });
         if (data.code === 200 && data.result && data.result.songs) return data.result.songs;
@@ -256,7 +259,7 @@ async function searchMusic(keywords, limit = 30) {
    获取每日推荐歌曲
    需要登录状态
    ============================ */
-async function getDailyRecommend() {
+export async function getDailyRecommend() {
     try {
         const data = await apiFetch('/recommend/songs');
         if (data.code === 200 && data.data && data.data.dailySongs) return data.data.dailySongs;
@@ -269,7 +272,7 @@ async function getDailyRecommend() {
    优先使用指定音质，失败则降级
    id: 网易云歌曲ID
    ============================ */
-async function getSongUrl(id) {
+export async function getSongUrl(id) {
     const level = state.settings.quality || 'standard';
 
     // 第1次尝试：使用用户选择的音质
@@ -292,7 +295,7 @@ async function getSongUrl(id) {
    id: 网易云歌曲ID
    返回LRC格式歌词文本
    ============================ */
-async function getLyric(id) {
+export async function getLyric(id) {
     try {
         const data = await apiFetch('/lyric', { id });
         if (data.code === 200 && data.lrc && data.lrc.lyric) return data.lrc.lyric;
@@ -304,7 +307,7 @@ async function getLyric(id) {
    获取用户的网易云歌单列表
    uid: 用户ID
    ============================ */
-async function getUserPlayLists(uid) {
+export async function getUserPlayLists(uid) {
     try {
         const data = await apiFetch('/user/playlist', { uid, limit: 50 });
         if (data.code === 200 && data.playlist) return data.playlist;
@@ -315,7 +318,7 @@ async function getUserPlayLists(uid) {
 /* ============================
    获取用户收藏的专辑列表
    ============================ */
-async function getUserAlbums(uid) {
+export async function getUserAlbums(uid) {
     try {
         const data = await apiFetch('/album/sublist', { limit: 50 });
         if (data.code === 200 && data.data) return data.data;
@@ -327,7 +330,7 @@ async function getUserAlbums(uid) {
    更新用户状态显示
    设置按钮显示用户昵称或"设置"
    ============================ */
-function renderUserStatus() {
+export function renderUserStatus() {
     const btn = document.getElementById('settingsBtn');
     btn.querySelector('span').textContent = state.user ? state.user.nickname : '设置';
     updateLoginUI();
@@ -338,7 +341,7 @@ function renderUserStatus() {
    已登录：显示用户头像/昵称/退出按钮
    未登录：显示登录表单
    ============================ */
-function updateLoginUI() {
+export function updateLoginUI() {
     const loginForm = document.querySelector('.login-content');
     const userInfo = document.getElementById('loginUserInfo');
 

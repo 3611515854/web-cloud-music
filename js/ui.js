@@ -1,11 +1,28 @@
-﻿//UI 交互：标签页、歌单、搜索、导入、初始化
+// UI 交互：标签页、歌单、搜索、导入、初始化
 /**项目的页面导航是单页应用(SPA)模式，通过CSS类切换实现不同页面的显示/隐藏 */
+
+import { state, AUDIO_EXTS, COVER_EXTS, LRC_EXTS } from './state.js';
+import {
+    saveSongToDB, saveMusicMeta, loadAllSongs,
+    savePlayerState, loadPlayerState, saveSettings, loadSettings,
+    saveApiBase, loadApiBase
+} from './persistence.js';
+import {
+    apiFetch, loginWithPhone, sendIdentifyCode, loginWithIdentifyCode,
+    fetchUserInfo, logout, startQrLogin, stopQrLogin,
+    searchMusic, getDailyRecommend, getUserPlayLists, getUserAlbums,
+    renderUserStatus, updateLoginUI
+} from './api.js';
+import {
+    playSong, updatePlayingState, setupPlayerBar, setupControls,
+    setupProgress, setupVolume, setupQueue, updateModeBtn
+} from './player.js';
 
 /* ============================
    设置应用 - 从state.settings恢复到UI
    页面初始化时调用，将持久化的设置值同步到界面
    ============================ */
-function applySettings() {
+export function applySettings() {
     const s = state.settings;
     //console.log(s);
     // 更新CSS变量，控制全局字号和歌词字号
@@ -61,7 +78,7 @@ function applySettings() {
    设置面板事件绑定
    主题色、字号、歌词字号、开关、音质的选择交互
    ============================ */
-function setupSettings() {
+export function setupSettings() {
     // 点击设置按钮，跳转到设置页
     document.getElementById('settingsBtn').addEventListener('click', () => switchTab('settings'));
     // ---- 主题色选择（8个预设色块） ---
@@ -180,7 +197,7 @@ function setupSettings() {
    设置主题颜色
    将十六进制颜色转为RGB，并更新CSS变量
    ============================ */
-function setThemeColor(hex) {
+export function setThemeColor(hex) {
     // 解析 #RRGGBB 为 r, g, b 分量
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
@@ -195,7 +212,7 @@ function setThemeColor(hex) {
    标签页切换核心函数
    控制侧边栏高亮 + 主内容区显示
    ============================ */
-function switchTab(tab) {
+export function switchTab(tab) {
     //记录上一个（当前）的标签页，用于返回导航（querySelector() 方法返回文档中匹配指定 CSS 选择器的一个元素）
     const currentActive = document.querySelector('.nav-item.active');
     //如果有上一个便签而且不为设置标签，把标签保存到previousTab里面
@@ -218,7 +235,7 @@ function switchTab(tab) {
     }
     // 切换到每日推荐时，加载推荐歌曲
     if (tab === 'daily') {
-        loadDailyRecommend();  
+        loadDailyRecommend();
     }
     // ---- 激活对应的导航按钮和内容区 ----
     if (tab === 'settings') {
@@ -248,7 +265,7 @@ document.getElementById('loginBackBtn').addEventListener('click', () => { /*stop
    本地音乐导入功能
    使用 File System Access API 选择文件夹并扫描音频文件
    ============================ */
-function setupImport() {
+export function setupImport() {
     document.getElementById('dropZone').addEventListener('click', pickDirectory);
 }
 
@@ -311,7 +328,7 @@ async function pickDirectory() {
                 console.error('处理文件失败:', entry.name, e);
                 errorCount++;
             }
-        } 
+        }
 
         // 保存元数据到localStorage，更新播放队列
         saveMusicMeta();
@@ -323,9 +340,9 @@ async function pickDirectory() {
         if (errorCount > 0) resultText += `，${errorCount} 首处理失败`;
         scanResult.textContent = resultText;
         renderMusicList();
-    } catch (err) { 
-        if (err.name !== 'AbortError') 
-        console.error('Directory picker error:', err); 
+    } catch (err) {
+        if (err.name !== 'AbortError')
+        console.error('Directory picker error:', err);
         // 更新扫描状态，提示用户出错
         const scanResult = document.getElementById('scanResult');
         if (scanResult) scanResult.textContent = '扫描出错：' + (err.message || '未知错误');
@@ -335,7 +352,7 @@ async function pickDirectory() {
 /* ============================
    工具函数 - 文件大小格式化
    ============================ */
-function fmtSize(b) {
+export function fmtSize(b) {
     if (b < 1024) return b + ' B';
     if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
     return (b / 1048576).toFixed(1) + ' MB';
@@ -345,7 +362,7 @@ function fmtSize(b) {
    渲染本地音乐列表
    支持搜索过滤，显示封面/歌名/歌手/播放指示器
    ============================ */
-function renderMusicList() {
+export function renderMusicList() {
     //更新侧边栏的音乐数量
     document.getElementById('allMusicCount').textContent = state.musicList.length;
     const list = document.getElementById('musicList');
@@ -417,7 +434,7 @@ async function loadDailyRecommend() {
    歌单管理 - 事件绑定
    新建、删除、歌单标签页切换
    ============================ */
-function setupPlaylists() {
+export function setupPlaylists() {
     // // 新建歌单按钮（两个入口：侧边栏 + 主内容区）
     // document.getElementById('newPlaylistBtn').addEventListener('click', openNewPlaylist);
     // document.querySelector('.add-playlist-btn').addEventListener('click', openNewPlaylist);
@@ -455,7 +472,7 @@ function closePlaylistDetail() {
    加载网易云歌单和专辑
    登录后调用，获取用户的歌单列表
    ============================ */
-async function loadNeteasePlaylists() {
+export async function loadNeteasePlaylists() {
     //没有登录时 清空歌单和专辑列表
     if (!state.user){
         state.neteasePlaylists = [];
@@ -849,15 +866,15 @@ function setupSearch() {
 // 渲染网易云搜索结果
 async function renderSearchResults(songs, query) {
     const list = document.getElementById('searchResults');
-    if (songs.length === 0) { 
+    if (songs.length === 0) {
         list.innerHTML = `
         <div class="empty-state">
             <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
             </svg>
             <p>未找到 "${query}" 相关结果</p>
-        </div>`; 
-        return; 
+        </div>`;
+        return;
     }
     list.innerHTML = songs.map(s => {
         const artists = (s.ar || []).map(a => a.name).join(' / ');
@@ -892,7 +909,7 @@ async function renderSearchResults(songs, query) {
    应用初始化
    页面加载完成后执行，恢复状态并绑定所有事件
    ============================ */
-async function init() {
+export async function init() {
     //加载持久化数据
     loadSettings();           // 从localStorage加载设置
     await loadAllSongs();     // 从IndexedDB加载所有歌曲
@@ -914,7 +931,7 @@ async function init() {
     setupLoginTabs();         // 登录方式切换
     setupLogin();             // 登录功能
     await loadPlayerState();  // 恢复上次播放状态
-    setupSearch();            // 搜索功能          
+    setupSearch();            // 搜索功能
 
     // 6. 如果已登录，加载用户信息和歌单
     if (state.cookie) {
@@ -923,5 +940,3 @@ async function init() {
         await loadNeteasePlaylists();
     }
 }
-
-init();

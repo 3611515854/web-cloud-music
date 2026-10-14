@@ -1,5 +1,5 @@
-﻿//IndexedDB 数据库操作封装
-//关于IndecedDB，是一种浏览器内置的 NoSQL（非关系型）数据库。
+// IndexedDB 数据库操作封装
+// 关于IndecedDB，是一种浏览器内置的 NoSQL（非关系型）数据库。
 const DB_NAME = 'MusicPlayerDB';//数据库名称
 const DB_VERSION = 1; //数据库版本
 
@@ -19,7 +19,7 @@ function openDB() {
     });
 }
 //写入数据库
-async function dbPut(key, value) {
+export async function dbPut(key, value) {
     const db = await openDB();
     return new Promise((resolve, reject) => {
         const tx = db.transaction('blobs', 'readwrite');
@@ -29,7 +29,7 @@ async function dbPut(key, value) {
     });
 }
 //读取数据
-async function dbGet(key) {
+export async function dbGet(key) {
     const db = await openDB();
     return new Promise((resolve, reject) => {
         const tx = db.transaction('blobs', 'readonly');
@@ -39,7 +39,7 @@ async function dbGet(key) {
     });
 }
 //删除数据
-async function dbDelete(key) {
+export async function dbDelete(key) {
     const db = await openDB();
     return new Promise((resolve, reject) => {
         const tx = db.transaction('blobs', 'readwrite');

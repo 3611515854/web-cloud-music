@@ -1,6 +1,11 @@
-﻿//持久化存储：歌单、设置、歌曲数据
+// 持久化存储：歌单、设置、歌曲数据
 
-async function saveSongToDB(song) {
+import { state, audio } from './state.js';
+import { dbPut, dbGet } from './db.js';
+import { getSongUrl } from './api.js';
+import { updateModeBtn, updatePlayerInfo, updateAlbumCover, loadLyricsFromText } from './player.js';
+
+export async function saveSongToDB(song) {
     const meta = { id: song.id, title: song.title, artist: song.artist, hasAudio: !!song.audioBlob, hasCover: !!song.coverBlob, hasLrc: !!song.lrcText };
     if (song.audioBlob) await dbPut(`audio_${song.id}`, song.audioBlob);
     if (song.coverBlob) await dbPut(`cover_${song.id}`, song.coverBlob);
@@ -8,12 +13,12 @@ async function saveSongToDB(song) {
     return meta;
 }
 
-function saveMusicMeta() {
+export function saveMusicMeta() {
     const meta = state.musicList.map(s => ({ id: s.id, title: s.title, artist: s.artist, hasAudio: !!s.audioBlob, hasCover: !!s.coverBlob, hasLrc: !!s.lrcText }));
     localStorage.setItem('mp_musicMeta', JSON.stringify(meta));
 }
 
-async function loadAllSongs() {
+export async function loadAllSongs() {
     try {
         const meta = localStorage.getItem('mp_musicMeta');
         if (!meta) return;
@@ -51,7 +56,7 @@ async function loadSongFromDB(meta) {
     return song;
 }
 
-function savePlayerState() {
+export function savePlayerState() {
     const s = state.currentSong;
     if (!s) return;
     const queueMeta = state.playQueue.map(q => ({ id: q.id, title: q.title, artist: q.artist, coverUrl: q.coverUrl, neteaseId: q.neteaseId, audioUrl: q.audioUrl, lrcText: q.lrcText }));
@@ -69,7 +74,7 @@ function savePlayerState() {
     }));
 }
 
-async function loadPlayerState() {
+export async function loadPlayerState() {
     try {
         const raw = localStorage.getItem('mp_playerState');
         if (!raw) return;
@@ -106,11 +111,11 @@ async function loadPlayerState() {
     } catch {}
 }
 
-function saveSettings() {
+export function saveSettings() {
     localStorage.setItem('mp_settings', JSON.stringify(state.settings));
 }
 
-function loadSettings() {
+export function loadSettings() {
     try {
         const s = localStorage.getItem('mp_settings');
         if (s) state.settings = { ...state.settings, ...JSON.parse(s) };
@@ -128,7 +133,7 @@ function loadSettings() {
  * 保存 API 代理地址到 localStorage
  * @param {string} url - 用户输入的 API 地址
  */
-function saveApiBase(url) {
+export function saveApiBase(url) {
     if (url) {
         localStorage.setItem('netease_api', url);
     } else {
@@ -141,6 +146,6 @@ function saveApiBase(url) {
  * 从 localStorage 读取已保存的 API 代理地址
  * @returns {string} 已保存的 API 地址，无保存则返回空字符串
  */
-function loadApiBase() {
+export function loadApiBase() {
     return localStorage.getItem('netease_api') || '';
 }

@@ -1,10 +1,15 @@
-﻿//播放器核心：控制、进度、音量、队列、歌词
+// 播放器核心：控制、进度、音量、队列、歌词
+
+import { state, audio, MODE_NAMES } from './state.js';
+import { getSongUrl, getLyric } from './api.js';
+import { savePlayerState, saveSettings } from './persistence.js';
+import { renderMusicList } from './ui.js';
 
 /* ============================
    播放器栏交互
    点击播放器栏打开全屏播放器（避开控制按钮区域）
    ============================ */
-function setupPlayerBar() {
+export function setupPlayerBar() {
     const playerBar = document.getElementById('playerBar');
     const fullscreen = document.getElementById('fullscreenPlayer');
     // 点击播放器栏 → 打开全屏播放器
@@ -23,7 +28,7 @@ function setupPlayerBar() {
    核心播放函数 - 播放指定歌曲
    设置音频源、更新所有UI、保存状态
    ============================ */
-async function playSong(song) {
+export async function playSong(song) {
     state.currentSong = song;//当前播放音乐设置为选中的音乐
     state.isPlaying = true;//设置播放状态
 
@@ -69,7 +74,7 @@ async function playSong(song) {
    更新播放器栏歌曲信息
    底部栏 + 全屏播放器的文字和封面
    ============================ */
-function updatePlayerInfo() {
+export function updatePlayerInfo() {
     const s = state.currentSong;
     //底部栏
     document.getElementById('playerTitle').textContent = s ? s.title : '未播放';
@@ -89,7 +94,7 @@ function updatePlayerInfo() {
    更新全屏播放器的专辑封面
    有封面显示图片，无封面显示默认音符图标
    ============================ */
-function updateAlbumCover() {
+export function updateAlbumCover() {
     const cover = document.getElementById('albumCover');
     if (state.currentSong && state.currentSong.coverUrl) {
         // 将封面URL参数替换为800x800（全屏需要更高清）
@@ -108,7 +113,7 @@ function updateAlbumCover() {
    播放中显示暂停图标，暂停时显示播放图标
    同时更新底部栏和全屏播放器的图标
    ============================ */
-function updatePlayButtons() {
+export function updatePlayButtons() {
     document.querySelectorAll('.play-icon').forEach(i => i.style.display = state.isPlaying ? 'none' : '');
     document.querySelectorAll('.pause-icon').forEach(i => i.style.display = state.isPlaying ? '' : 'none');
 }
@@ -116,7 +121,7 @@ function updatePlayButtons() {
    更新歌曲列表中当前播放歌曲的高亮状态
    给正在播放的歌曲行添加 .playing 类
    ============================ */
-function updatePlayingState() {
+export function updatePlayingState() {
     const curId = state.currentSong?.id;
     const curNeteaseId = state.currentSong?.neteaseId;
     document.querySelectorAll('.music-item').forEach(item => {
@@ -129,7 +134,7 @@ function updatePlayingState() {
    播放控制按钮事件绑定
    播放/暂停、上一首/下一首、播放模式、音质选择
    ============================ */
-function setupControls() {
+export function setupControls() {
     //播放暂停
     document.getElementById('playBtn').addEventListener('click',togglePlay);
     document.getElementById('playBtnLarge').addEventListener('click',togglePlay);
@@ -201,7 +206,7 @@ function setupControls() {
    进度条和时间更新
    监听audio的timeupdate事件，实时更新进度条和时间显示
    ============================ */
-function setupProgress() {
+export function setupProgress() {
     // 音频时间更新事件（每秒触发多次）
     audio.addEventListener('timeupdate', () => {
         if (!audio.duration) return;
@@ -245,7 +250,7 @@ function fmt(sec) {
    播放/暂停切换
    处理播放状态、URL过期重获、播放控制
    ============================ */
-async function togglePlay() {
+export async function togglePlay() {
     if(!state.currentSong) return;//没有歌曲时不做处理
 
     if(state.isPlaying) {
@@ -284,7 +289,7 @@ async function togglePlay() {
    播放下一首
    根据播放模式决定下一首歌曲
    ============================ */
-async function playNext() {
+export async function playNext() {
     const queue = state.playQueue;
     if (queue.length === 0) return;
 
@@ -309,7 +314,7 @@ async function playNext() {
    播放上一首
    循环到列表末尾
    ============================ */
-async function playPrev() {
+export async function playPrev() {
     const queue = state.playQueue;
     if (queue.length === 0) return;
     const curId = state.currentSong?.neteaseId || state.currentSong?.id;
@@ -321,7 +326,7 @@ async function playPrev() {
    音量控制
    竖向滑块 + 拖拽 + 持久化
    ============================ */
-function setupVolume() {
+export function setupVolume() {
     const volumeBtn = document.getElementById('volumeBtn');
     const volumePopup = document.getElementById('volumePopup');
     const volumeTrack = document.getElementById('volumeTrack');
@@ -380,15 +385,15 @@ function setupVolume() {
    播放队列面板
    底部栏的队列弹出面板
    ============================ */
-function setupQueue() {
+export function setupQueue() {
     const queueBtn = document.getElementById('queueBtn');
     const queuePopup = document.getElementById('queuePopup');
 
     // 点击队列按钮切换面板
-    queueBtn.addEventListener('click', (e) => { 
-        e.stopPropagation(); 
-        renderQueue(); 
-        queuePopup.classList.toggle('active'); 
+    queueBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        renderQueue();
+        queuePopup.classList.toggle('active');
     });
     // 点击面板外部关闭（底部栏和全屏播放器的队列面板都关闭）
     document.addEventListener('click', (e) => {
@@ -402,7 +407,7 @@ function setupQueue() {
    渲染播放队列列表
    同时更新底部栏和全屏播放器的队列面板
    ============================ */
-function renderQueue() {
+export function renderQueue() {
     const songs = state.playQueue;
     const countText = songs.length + '首歌';
     document.getElementById('queueCount').textContent = countText;
@@ -444,7 +449,7 @@ function renderQueue() {
    播放模式切换
    0→1→2→0 循环（顺序→单曲→随机→顺序）
    ============================ */
-function togglePlayMode() {
+export function togglePlayMode() {
     state.playMode = (state.playMode +1) % 3;
     updateModeBtn();
     if( state.currentSong) savePlayerState();//保存播放模式
@@ -453,7 +458,7 @@ function togglePlayMode() {
    更新播放模式按钮图标
    通过opacity切换三个叠加的SVG图标（带过渡动画）
    ============================ */
-function updateModeBtn() {
+export function updateModeBtn() {
     document.querySelectorAll('.mode-btn, .mode-btn-large').forEach(btn => {
         btn.title = MODE_NAMES[state.playMode];
         btn.querySelectorAll('svg').forEach(s => {
@@ -470,15 +475,15 @@ function updateModeBtn() {
    歌词解析
    将LRC格式歌词文本解析为 [{time, text}] 数组
    ============================ */
-function loadLyricsFromText(text) {
+export function loadLyricsFromText(text) {
     //console.log(text);//打印歌词
     state.lyrics = [];
     state.currentLyricIndex = -1;
     const container = document.getElementById('lyricsContainer');
     // 无歌词时显示占位文字
     if (!text) {
-        container.innerHTML = '<div class="lyric-line placeholder">暂无歌词</div>'; 
-        return; 
+        container.innerHTML = '<div class="lyric-line placeholder">暂无歌词</div>';
+        return;
     }
     // 逐行解析LRC格式
     const lines = text.split('\n');
@@ -515,7 +520,7 @@ function loadLyricsFromText(text) {
    歌词同步
    根据当前播放时间高亮对应的歌词行，并自动滚动居中
    ============================ */
-function syncLyrics(time) {
+export function syncLyrics(time) {
 
     if (state.lyrics.length === 0) return;
 
