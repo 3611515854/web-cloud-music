@@ -1,17 +1,12 @@
-﻿.header{
-    background: var(--bg-secondary);        /* 次级背景色，用于区分主内容区 */
+﻿
+.header{
     display: flex;
+    position: fixed;
+    margin-top: -10px;
     flex-direction: row;                 /* 子元素纵向排列（指定了弹性子元素在父容器中的位置） */
     flex-shrink: 0;   
-    width: 100%;                      /* 不允许被压缩，保持固定宽度 */ 
+    width: calc(100vw - var(--sidebar-width) - 2em);                      /* 不允许被压缩，保持固定宽度 */ 
     height: var(--header-height);
     align-items: center;
     justify-content: space-between;        /* 子元素在主轴上两端对齐，左侧logo+搜索框，右侧设置按钮 */
-    padding: 0 16px;                       /* 左右内边距16px */
-}
-
-.right-part{
-    display: flex;
-    align-items: center;
-    gap: 16px; /* 子元素之间的间距 */
 }
