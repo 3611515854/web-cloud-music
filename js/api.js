@@ -331,8 +331,8 @@ export async function getUserAlbums(uid) {
    设置按钮显示用户昵称或"设置"
    ============================ */
 export function renderUserStatus() {
-    const btn = document.getElementById('settingsBtn');
-    btn.querySelector('span').textContent = state.user ? state.user.nickname : '设置';
+    // const btn = document.getElementById('settingsBtn');
+    // btn.querySelector('span').textContent = state.user ? state.user.nickname : '设置';
     updateLoginUI();
 }
 
@@ -344,19 +344,29 @@ export function renderUserStatus() {
 export function updateLoginUI() {
     const loginForm = document.querySelector('.login-content');
     const userInfo = document.getElementById('loginUserInfo');
+    const headerUserInfo = document.getElementById('headerUserInfo');
 
     if (state.user) {
         // 已登录状态
         loginForm.style.display = 'none';
         userInfo.style.display = 'flex';
+        if (headerUserInfo) headerUserInfo.style.display = 'flex';
         document.getElementById('userNickname').textContent = state.user.nickname;
         document.getElementById('userId').textContent = 'ID: ' + state.user.userId;
+        const headerNickname = document.getElementById('headerUserNickname');
+        if (headerNickname) headerNickname.textContent = state.user.nickname;
         // 设置头像（加载失败则隐藏）
+        const avatarHtml = state.user.avatarUrl
+            ? `<img src="${state.user.avatarUrl}" onerror="this.style.display='none'">`
+            : '';
         const avatar = document.getElementById('userAvatar');
-        if (state.user.avatarUrl) avatar.innerHTML = `<img src="${state.user.avatarUrl}" onerror="this.style.display='none'">`;
+        if (avatar) avatar.innerHTML = avatarHtml;
+        const headerAvatar = document.getElementById('headerUserAvatar');
+        if (headerAvatar) headerAvatar.innerHTML = avatarHtml;
     } else {
         // 未登录状态
         loginForm.style.display = 'flex';
         userInfo.style.display = 'none';
+        if (headerUserInfo) headerUserInfo.style.display = 'none';
     }
 }
