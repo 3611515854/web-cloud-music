@@ -1,7 +1,6 @@
-﻿
-.header{
+﻿.header{
     display: flex;
-    z-index: 1000;
+    z-index: 100;
     position: fixed;
     margin-top: -10px;
     flex-direction: row;                 /* 子元素纵向排列（指定了弹性子元素在父容器中的位置） */
