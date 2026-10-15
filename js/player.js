@@ -55,7 +55,8 @@ export async function playSong(song) {
     //设置音频源并播放
     audio.src = song.audioUrl;
     audio.play().catch(e => {
-        console.error('播放失败',e.error,'歌曲',song.title);
+        if (e && e.name === 'AbortError') return;
+        console.error('播放失败', e, '歌曲', song.title);
         state.isPlaying = false;
         updatePlayButtons();
     })
@@ -259,7 +260,8 @@ export async function togglePlay() {
         state.isPlaying = false;
     } else {
         //播放
-        if(state.currentSong.neteaseId && !state.currentSong.audioUrl) {
+        // 网易云链接可能过期，播放前必要时重新获取
+        if (state.currentSong.neteaseId && !state.currentSong.audioUrl) {
             const url = await getSongUrl(state.currentSong.neteaseId);
             if(url) state.currentSong.audioUrl = url;
         }
@@ -268,17 +270,19 @@ export async function togglePlay() {
             alert('无法获取播放链接');
             return;
         }
-        // 设置音频源（如果URL没变化则跳过，避免重新加载）
-        const currentTime = audio.currentTime;
-        if (audio.src !== state.currentSong.audioUrl) {
-            audio.src = state.currentSong.audioUrl;
+        // 设置音频源（URL变化时重新加载）
+        // 用 getAttribute 比较：audio.src 属性会被解析成绝对地址，不能直接比
+        const wantSrc = state.currentSong.audioUrl;
+        if (audio.getAttribute('src') !== wantSrc) {
+            audio.src = wantSrc;
         }
-        audio.currentTime = currentTime;
         try {
             await audio.play();
             state.isPlaying = true;
         } catch (e) {
-            console.error('播放失败',e);
+            // AbortError：play() 被 pause()/换源打断，属正常竞态，不记为失败
+            if (e && e.name === 'AbortError') return;
+            console.error('播放失败', e);
             state.isPlaying = false;
         }
     }
@@ -536,7 +540,6 @@ export function syncLyrics(time) {
     // 没有变化则跳过
     if (idx === state.currentLyricIndex) return;
     state.currentLyricIndex = idx;
-    console.log(state.lyrics[idx]);
 
     // 更新所有歌词行的激活状态
     const container = document.getElementById('lyricsContainer');
