@@ -10,3 +10,14 @@
     align-items: center;
     justify-content: space-between;        /* 子元素在主轴上两端对齐，左侧logo+搜索框，右侧设置按钮 */
 }
+
+.right-box {
+    display: flex;
+    align-items: center;
+    background: var(--bg);          /* 白色背景，从次级背景中突出 */
+    border: 1px solid var(--border);/* 浅灰色边框 */
+    border-radius: var(--radius-sm);
+    height: 2.5em;
+    margin-right: 1em;
+    padding: 0 0.2em;
+}

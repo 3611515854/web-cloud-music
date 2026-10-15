@@ -331,8 +331,8 @@ export async function getUserAlbums(uid) {
    设置按钮显示用户昵称或"设置"
    ============================ */
 export function renderUserStatus() {
-    const btn = document.getElementById('settingsBtn');
-    btn.querySelector('span').textContent = state.user ? state.user.nickname : '设置';
+    // const btn = document.getElementById('settingsBtn');
+    // btn.querySelector('span').textContent = state.user ? state.user.nickname : '设置';
     updateLoginUI();
 }
 
