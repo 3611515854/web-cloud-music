@@ -4,6 +4,84 @@ import { state, audio, MODE_NAMES } from './state.js';
 import { getSongUrl, getLyric } from './api.js';
 import { savePlayerState, saveSettings } from './persistence.js';
 import { renderMusicList } from './ui.js';
+import { dbGet } from './db.js';
+
+// 网易云临时链接大约几十分钟就过期（403），超过此时间强制重取
+const URL_TTL_MS = 10 * 60 * 1000;
+
+/**
+ * 确保歌曲有可播放的地址。
+ * - 网易云：链接缺失/过期/force 时重新获取
+ * - 本地：blob 失效时从 memory 或 IndexedDB 重建
+ */
+async function ensureAudioUrl(song, force = false) {
+    if (!song) return null;
+
+    // ---- 本地音乐 ----
+    if (!song.neteaseId) {
+        if (song.audioBlob) {
+            if (force || !song.audioUrl || !song.audioUrl.startsWith('blob:')) {
+                song.audioUrl = URL.createObjectURL(song.audioBlob);
+            }
+            return song.audioUrl;
+        }
+        try {
+            const blob = await dbGet(`audio_${song.id}`);
+            if (blob) {
+                song.audioBlob = blob;
+                song.audioUrl = URL.createObjectURL(blob);
+                return song.audioUrl;
+            }
+        } catch {}
+        return song.audioUrl || null;
+    }
+
+    // ---- 网易云音乐 ----
+    const expired = !song.audioUrl
+        || !song.urlFetchedAt
+        || (Date.now() - song.urlFetchedAt > URL_TTL_MS);
+    if (force || expired) {
+        song.audioUrl = null;
+        const url = await getSongUrl(song.neteaseId);
+        if (url) {
+            song.audioUrl = url;
+            song.urlFetchedAt = Date.now();
+        }
+    }
+    return song.audioUrl || null;
+}
+
+/**
+ * 尝试播放当前 song；失败则强制刷新链接重试一次。
+ */
+async function startPlayback(song) {
+    audio.src = song.audioUrl;
+    try {
+        await audio.play();
+        state.isPlaying = true;
+        return true;
+    } catch (e) {
+        if (e && e.name === 'AbortError') return false;
+        // 403 / 网络错误：旧链接失效，换新链接再试一次
+        if (song.neteaseId || song.audioBlob) {
+            const url = await ensureAudioUrl(song, true);
+            if (url && url !== audio.getAttribute('src')) {
+                audio.src = url;
+                try {
+                    await audio.play();
+                    state.isPlaying = true;
+                    return true;
+                } catch (e2) {
+                    if (e2 && e2.name === 'AbortError') return false;
+                    console.error('播放失败(重试后)', e2, song.title);
+                }
+            }
+        }
+        console.error('播放失败', e, song.title);
+        state.isPlaying = false;
+        return false;
+    }
+}
 
 /* ============================
    播放器栏交互
@@ -32,34 +110,22 @@ export async function playSong(song) {
     state.currentSong = song;//当前播放音乐设置为选中的音乐
     state.isPlaying = true;//设置播放状态
 
-    // ---- 网易云歌曲处理 ----
-    // URL可能过期或缺失，需要重新获取
-    if (song.neteaseId && !song.audioUrl) {
-        const url = await getSongUrl(song.neteaseId);
-        if (!url) { alert('无法获取播放链接'); state.isPlaying = false; updatePlayButtons(); return; }
-        song.audioUrl = url;
-    }
-    // 歌词也需要异步获取
-    if (song.neteaseId && !song.lrcText) {
-        song.lrcText = await getLyric(song.neteaseId);
-    }
-
-    //本地音乐播放，没有audioUrl说明播放异常
-    if (!song.audioUrl) {
-        console.error('没有音频链接',song);
+    // 获取/刷新可播放地址（网易云过期、本地 blob 失效都处理）
+    const url = await ensureAudioUrl(song);
+    if (!url) {
+        alert('无法获取播放链接');
         state.isPlaying = false;
         updatePlayButtons();
         return;
     }
 
-    //设置音频源并播放
-    audio.src = song.audioUrl;
-    audio.play().catch(e => {
-        if (e && e.name === 'AbortError') return;
-        console.error('播放失败', e, '歌曲', song.title);
-        state.isPlaying = false;
-        updatePlayButtons();
-    })
+    // 歌词也需要异步获取
+    if (song.neteaseId && !song.lrcText) {
+        song.lrcText = await getLyric(song.neteaseId);
+    }
+
+    const ok = await startPlayback(song);
+    if (!ok && !state.isPlaying) updatePlayButtons();
 
     //更新所有UI
     updatePlayerInfo();      // 更新底部栏歌名/歌手/封面
@@ -259,32 +325,18 @@ export async function togglePlay() {
         audio.pause();
         state.isPlaying = false;
     } else {
-        //播放
-        // 网易云链接可能过期，播放前必要时重新获取
-        if (state.currentSong.neteaseId && !state.currentSong.audioUrl) {
-            const url = await getSongUrl(state.currentSong.neteaseId);
-            if(url) state.currentSong.audioUrl = url;
-        }
-        // 没有播放链接则提示
-        if (!state.currentSong.audioUrl) {
+        //播放：挂起后链接可能已过期，先确保拿到可用地址
+        const url = await ensureAudioUrl(state.currentSong);
+        if (!url) {
             alert('无法获取播放链接');
             return;
         }
         // 设置音频源（URL变化时重新加载）
         // 用 getAttribute 比较：audio.src 属性会被解析成绝对地址，不能直接比
-        const wantSrc = state.currentSong.audioUrl;
-        if (audio.getAttribute('src') !== wantSrc) {
-            audio.src = wantSrc;
+        if (audio.getAttribute('src') !== url) {
+            audio.src = url;
         }
-        try {
-            await audio.play();
-            state.isPlaying = true;
-        } catch (e) {
-            // AbortError：play() 被 pause()/换源打断，属正常竞态，不记为失败
-            if (e && e.name === 'AbortError') return;
-            console.error('播放失败', e);
-            state.isPlaying = false;
-        }
+        await startPlayback(state.currentSong);
     }
     updatePlayButtons();
     updateAlbumCover();    // 更新全屏封面动画

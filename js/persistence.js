@@ -103,7 +103,10 @@ export async function loadPlayerState() {
 
         if (saved.queue && saved.queue.length > 0) {
             state.playQueue = saved.queue.map(q => {
-                if (q.neteaseId) return q;
+                if (q.neteaseId) {
+                    // 网易云临时链接会过期，恢复队列时丢弃，播放前重取
+                    return { ...q, audioUrl: null };
+                }
                 const local = state.musicList.find(s => s.id == q.id);
                 return local || q;
             });
