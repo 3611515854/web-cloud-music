@@ -62,9 +62,15 @@
     color: var(--text);
 }
 
+/*未登录时的"点击登录"提示*/
+.mini-login-user-info h3.login-hint {
+    color: var(--text-secondary);
+    font-weight: normal;
+}
+
 /* ============================
-   头部弹出面板（队列）
-   显示当前播放队列，可点击切换歌曲
+   头部用户信息弹出面板
+   已登录时点击头像显示：头像/昵称/ID/退出按钮
    ============================ */
 .header-wrapper {
     position: relative;
@@ -80,7 +86,7 @@
     cursor: pointer;
     transition: background 0.15s;
 }
-/*播放列表弹出面板*/
+/*用户信息弹出面板*/
 .header-popup {
     position: absolute;
     top: calc(100% + 8px);   /* 在按钮下方弹出 */
@@ -105,4 +111,17 @@
 
 .header-popup.active {
     display: flex;
+}
+
+/*弹窗内的用户信息：复用登录页布局，去掉卡片外边距和底色*/
+.header-popup .login-user-info {
+    margin-top: 0;
+    background: transparent;
+    border-radius: 0;
+    gap: 12px;
+    padding: 16px;
+}
+
+.header-popup .user-details {
+    text-align: center;
 }

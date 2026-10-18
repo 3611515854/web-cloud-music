@@ -835,14 +835,56 @@ function setupLogin() {
     });
 
     // 退出登录
-    if (logoutBtn) logoutBtn.addEventListener('click', async () => {
-        await logout();
-        state.neteasePlaylists = [];
-        state.neteaseAlbums = [];
-        renderUserStatus();
-        renderNeteasePlaylists();
-        renderSidebarPlaylists();
-        alert('已退出登录');
+    if (logoutBtn) logoutBtn.addEventListener('click', doLogout);
+}
+
+/* ============================
+   退出登录（登录页和头部弹窗共用）
+   清除登录态、清空歌单缓存并刷新用户UI
+   ============================ */
+async function doLogout() {
+    await logout();
+    state.neteasePlaylists = [];
+    state.neteaseAlbums = [];
+    renderUserStatus();
+    renderNeteasePlaylists();
+    renderSidebarPlaylists();
+    alert('已退出登录');
+}
+
+/* ============================
+   头部用户信息按钮
+   已登录：点击弹出用户信息面板（头像/昵称/ID/退出登录）
+   未登录：点击跳转到登录页
+   ============================ */
+function setupHeaderUser() {
+    const btn = document.getElementById('headerUserBtn');
+    const popup = document.getElementById('headerUserPopup');
+    if (!btn || !popup) return;
+
+    // 点击头像/昵称区域
+    btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (state.user) {
+            popup.classList.toggle('active');   // 已登录：切换弹窗
+        } else {
+            switchTab('login');                  // 未登录：跳转登录页
+            updateLoginUI();
+        }
+    });
+
+    // 弹窗内的退出登录按钮
+    const headerLogoutBtn = document.getElementById('headerLogoutBtn');
+    if (headerLogoutBtn) headerLogoutBtn.addEventListener('click', async () => {
+        await doLogout();
+        popup.classList.remove('active');
+    });
+
+    // 点击弹窗外部关闭
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#headerUserWrapper')) {
+            popup.classList.remove('active');
+        }
     });
 }
 
@@ -930,6 +972,7 @@ export async function init() {
     setupPlaylists();         // 歌单管理
     setupLoginTabs();         // 登录方式切换
     setupLogin();             // 登录功能
+    setupHeaderUser();        // 头部用户信息/登录入口
     await loadPlayerState();  // 恢复上次播放状态
     setupSearch();            // 搜索功能
 

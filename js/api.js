@@ -327,13 +327,20 @@ export async function getUserAlbums(uid) {
 }
 
 /* ============================
+   生成头像HTML
+   头像加载失败时自动隐藏图片，露出默认渐变背景
+   ============================ */
+function avatarHtml(url) {
+    return url ? `<img src="${url}" onerror="this.style.display='none'">` : '';
+}
+
+/* ============================
    更新用户状态显示
    设置按钮显示用户昵称或"设置"
    ============================ */
 export function renderUserStatus() {
-    // const btn = document.getElementById('settingsBtn');
-    // btn.querySelector('span').textContent = state.user ? state.user.nickname : '设置';
     updateLoginUI();
+    updateHeaderUI();
 }
 
 /* ============================
@@ -344,29 +351,50 @@ export function renderUserStatus() {
 export function updateLoginUI() {
     const loginForm = document.querySelector('.login-content');
     const userInfo = document.getElementById('loginUserInfo');
-    const headerUserInfo = document.getElementById('headerUserInfo');
 
     if (state.user) {
         // 已登录状态
         loginForm.style.display = 'none';
         userInfo.style.display = 'flex';
-        if (headerUserInfo) headerUserInfo.style.display = 'flex';
         document.getElementById('userNickname').textContent = state.user.nickname;
         document.getElementById('userId').textContent = 'ID: ' + state.user.userId;
-        const headerNickname = document.getElementById('headerUserNickname');
-        if (headerNickname) headerNickname.textContent = state.user.nickname;
-        // 设置头像（加载失败则隐藏）
-        const avatarHtml = state.user.avatarUrl
-            ? `<img src="${state.user.avatarUrl}" onerror="this.style.display='none'">`
-            : '';
         const avatar = document.getElementById('userAvatar');
-        if (avatar) avatar.innerHTML = avatarHtml;
-        const headerAvatar = document.getElementById('headerUserAvatar');
-        if (headerAvatar) headerAvatar.innerHTML = avatarHtml;
+        if (avatar) avatar.innerHTML = avatarHtml(state.user.avatarUrl);
     } else {
         // 未登录状态
         loginForm.style.display = 'flex';
         userInfo.style.display = 'none';
-        if (headerUserInfo) headerUserInfo.style.display = 'none';
+    }
+}
+
+/* ============================
+   更新头部UI
+   已登录：显示用户头像/昵称，点击后弹窗，显示用户头像/昵称/id/退出按钮
+   未登录：显示默认头像和点击登录提示，点击后跳转到登录页
+   ============================ */
+export function updateHeaderUI() {
+    const nickname = document.getElementById('headerUserNickname');
+    const avatar = document.getElementById('headerUserAvatar');
+    const popup = document.getElementById('headerUserPopup');
+    if (!nickname || !avatar) return;
+
+    if (state.user) {
+        // 已登录：头像 + 昵称
+        nickname.textContent = state.user.nickname;
+        nickname.classList.remove('login-hint');
+        avatar.innerHTML = avatarHtml(state.user.avatarUrl);
+        // 同步弹窗内的详细信息（头像/昵称/ID）
+        const pAvatar = document.getElementById('headerPopupAvatar');
+        const pNickname = document.getElementById('headerPopupNickname');
+        const pUserId = document.getElementById('headerPopupUserId');
+        if (pAvatar) pAvatar.innerHTML = avatar.innerHTML;
+        if (pNickname) pNickname.textContent = state.user.nickname;
+        if (pUserId) pUserId.textContent = 'ID: ' + state.user.userId;
+    } else {
+        // 未登录：默认头像（渐变背景） + 点击登录提示
+        nickname.textContent = '点击登录';
+        nickname.classList.add('login-hint');
+        avatar.innerHTML = '';
+        if (popup) popup.classList.remove('active');
     }
 }

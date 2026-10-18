@@ -89,23 +89,23 @@
                 <!--右侧设置按钮和用户信息-->
                 <div class="right-box">
                     <!--登录用户信息-->
-                    <div class="header-wrapper" id="queueWrapper">
-                        <button class="header-login-btn" id="queueBtn" title="登录信息">
-                            <div class="mini-login-user-info" id="headerUserInfo" style="display:none">
+                    <!--用户信息：未登录显示默认头像+登录提示，已登录显示头像+昵称-->
+                    <div class="header-wrapper" id="headerUserWrapper">
+                        <button class="header-login-btn" id="headerUserBtn" title="用户信息">
+                            <div class="mini-login-user-info" id="headerUserInfo">
                                 <div class="mini-user-avatar" id="headerUserAvatar"></div>
-                                <h3 id="headerUserNickname"></h3>
+                                <h3 id="headerUserNickname" class="login-hint">点击登录</h3>
                             </div>
                         </button>
-                        <!--播放列表弹出面板-->
-                        <div class="header-popup" id="queuePopup">
-                            <!-- 登陆后用户信息区域 -->
-                            <div class="login-user-info" id="loginUserInfo" style="display:none">
-                                <div class="user-avatar" id="userAvatar"></div>
+                        <!--用户信息弹出面板（已登录时点击头像弹出）-->
+                        <div class="header-popup" id="headerUserPopup">
+                            <div class="login-user-info">
+                                <div class="user-avatar" id="headerPopupAvatar"></div>
                                 <div class="user-details">
-                                    <h3 id="userNickname"></h3>
-                                    <p id="userId"></p>
+                                    <h3 id="headerPopupNickname"></h3>
+                                    <p id="headerPopupUserId"></p>
                                 </div>
-                                <button class="btn-secondary" id="logoutBtn">退出登录</button>
+                                <button class="btn-secondary" id="headerLogoutBtn">退出登录</button>
                             </div>
                         </div>
                     </div>
