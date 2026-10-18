@@ -20,3 +20,89 @@
     margin-right: 1em;
     padding: 0 0.2em;
 }
+/* ============================
+   头部mini用户信息区域（登录后显示）
+   头像 + 昵称 + ID + 退出按钮
+   ============================ */
+.mini-login-user-info {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.mini-login-user-info:hover {
+    background: var(--bg-secondary);
+    border-radius: var(--radius);
+}
+/* 用户头像 */
+.mini-user-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(var(--theme-color-rgb), 0.3), rgba(var(--theme-color-rgb), 0.1));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.mini-user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+
+.mini-login-user-info h3 {
+    font-size: 1em;
+    margin-left: 8px;
+    color: var(--text);
+}
+
+/* ============================
+   头部弹出面板（队列）
+   显示当前播放队列，可点击切换歌曲
+   ============================ */
+.header-wrapper {
+    position: relative;
+}
+
+.header-login-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    padding: 0.2em 0.5em;
+    background: transparent;
+    border:none;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+/*播放列表弹出面板*/
+.header-popup {
+    position: absolute;
+    top: calc(100% + 8px);   /* 在按钮下方弹出 */
+    right: 0;
+    width: 220px;
+    max-height: 400px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08);
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    transform-origin: top right;
+    animation: popDown 0.2s ease;
+    z-index: 110;
+}
+/* 弹出动画 - 向下弹出 */
+@keyframes popDown {
+    from { opacity: 0; transform: translateY(-8px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.header-popup.active {
+    display: flex;
+}

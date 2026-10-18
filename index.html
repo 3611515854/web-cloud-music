@@ -89,9 +89,25 @@
                 <!--右侧设置按钮和用户信息-->
                 <div class="right-box">
                     <!--登录用户信息-->
-                    <div class="mini-login-user-info" id="headerUserInfo" style="display:none">
-                        <div class="mini-user-avatar" id="headerUserAvatar"></div>
-                        <h3 id="headerUserNickname"></h3>
+                    <div class="header-wrapper" id="queueWrapper">
+                        <button class="header-login-btn" id="queueBtn" title="登录信息">
+                            <div class="mini-login-user-info" id="headerUserInfo" style="display:none">
+                                <div class="mini-user-avatar" id="headerUserAvatar"></div>
+                                <h3 id="headerUserNickname"></h3>
+                            </div>
+                        </button>
+                        <!--播放列表弹出面板-->
+                        <div class="header-popup" id="queuePopup">
+                            <!-- 登陆后用户信息区域 -->
+                            <div class="login-user-info" id="loginUserInfo" style="display:none">
+                                <div class="user-avatar" id="userAvatar"></div>
+                                <div class="user-details">
+                                    <h3 id="userNickname"></h3>
+                                    <p id="userId"></p>
+                                </div>
+                                <button class="btn-secondary" id="logoutBtn">退出登录</button>
+                            </div>
+                        </div>
                     </div>
                     <!--设置按钮-->
                     <div class="settings">
