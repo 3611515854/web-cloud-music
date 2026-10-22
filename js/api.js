@@ -5,7 +5,7 @@
    API代理服务器地址在 state.js 中定义
    ============================ */
 
-import { API_BASE, state } from './state.js';
+import { state } from './state.js';
 import { switchTab, loadNeteasePlaylists } from './ui.js';
 
 /* ============================
@@ -13,8 +13,8 @@ import { switchTab, loadNeteasePlaylists } from './ui.js';
    通用的 GET 请求函数，自动附加 cookie 和参数
    ============================ */
 export async function apiFetch(path, params = {}) {
-    // 拼接完整URL
-    const url = new URL(API_BASE + path);
+    // 拼接完整URL（每次请求实时读取 state.apiBase，保存新地址后立即生效）
+    const url = new URL(state.apiBase + path);
 
     // 将参数对象转为URL查询参数
     // 例：{ id: 123, limit: 50 } → ?id=123&limit=50
@@ -37,7 +37,8 @@ export async function apiFetch(path, params = {}) {
    用于登录等需要POST的接口
    ============================ */
 export async function apiPost(path, body = {}) {
-    const url = new URL(API_BASE + path);
+    // 同样实时读取 state.apiBase
+    const url = new URL(state.apiBase + path);
 
     // 附加cookie
     if (state.cookie) url.searchParams.set('cookie', state.cookie);

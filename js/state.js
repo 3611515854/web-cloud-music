@@ -7,11 +7,7 @@ export const FAVORITES_ID = 0;
 // 默认歌单列表，包含一个固定的"我喜欢的音乐"歌单
 export const DEFAULT_PLAYLISTS = [{ id: FAVORITES_ID, name: '我喜欢的音乐', songs: [] }];
 
-// 网易云API代理服务器地址
-// 页面加载时从 localStorage 读取用户自定义地址
-// 存取由 persistence.js 中的 saveApiBase() / loadApiBase() 管理
-// 用户在设置页的 #apiBaseInput 输入，ui.js 的 setupSettings 中绑定实时保存
-export const API_BASE = localStorage.getItem('netease_api');
+// 网易云API代理服务器地址：见 state.apiBase（每次请求时实时读取）
 
 /* ============================
    全局状态对象
@@ -33,6 +29,11 @@ export const state = {
     playQueue: [],            // 当前播放队列（歌曲数组，播放/上一首/下一首从这里取）
     user: null,               // 当前登录的网易云用户信息（昵称、头像等）
     cookie: localStorage.getItem('netease_cookie') || '', // 网易云登录凭证
+    // 网易云API代理服务器地址
+    // 页面加载时从 localStorage 读取，之后由 saveApiBase() 实时更新
+    // api.js 的每次请求都读取它，所以保存后 GET/POST 立即生效，无需刷新页面
+    // 用户在设置页的 #apiBaseInput 输入，ui.js 的 setupSettings 中绑定实时保存
+    apiBase: localStorage.getItem('netease_api') || '',
     neteasePlaylists: [],     // 用户在网易云创建/收藏的歌单列表
     neteaseAlbums: [],        // 用户在网易云收藏的专辑列表
     currentPlaylistTab: 'created', // 当前歌单标签：created/collected/album/local

@@ -129,19 +129,25 @@ export function loadSettings() {
    API代理地址存取
    将用户自定义的网易云API代理地址
    存入localStorage，页面初始化时恢复
-   存储 key: "netease_api"（与 state.js 中 API_BASE 常量对应）
+   存储 key: "netease_api"（与 state.apiBase 对应）
    ============================ */
 
 /**
- * 保存 API 代理地址到 localStorage
+ * 保存 API 代理地址到 localStorage，并立即写入 state.apiBase
+ * api.js 的 GET/POST 每次请求都实时读取 state.apiBase，
+ * 所以保存后无需刷新页面，后续请求自动走新地址
  * @param {string} url - 用户输入的 API 地址
  */
 export function saveApiBase(url) {
     if (url) {
-        localStorage.setItem('netease_api', url);
+        // 去掉末尾多余的斜杠，避免拼出 https://xx.com//search 这种双斜杠路径
+        const base = url.trim().replace(/\/+$/, '');
+        localStorage.setItem('netease_api', base);
+        state.apiBase = base; // 立即生效
     } else {
         // 如果清空输入框，则删除缓存
         localStorage.removeItem('netease_api');
+        state.apiBase = '';
     }
 }
 
