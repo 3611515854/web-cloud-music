@@ -698,6 +698,49 @@ function renderSidebarPlaylists() {
     });
 }
 /* ============================
+   歌单歌曲缓存
+   同一个歌单短时间内重复打开时直接复用，避免重复请求
+   ============================ */
+const PLAYLIST_TRACKS_CACHE_TTL = 10 * 60 * 1000; // 10分钟
+const playlistTracksCache = new Map(); // `${type}_${id}` -> { tracks, savedAt }
+
+function getCachedPlaylistTracks(cacheKey) {
+    const cached = playlistTracksCache.get(cacheKey);
+    if (!cached) return null;
+    if (Date.now() - cached.savedAt > PLAYLIST_TRACKS_CACHE_TTL) {
+        playlistTracksCache.delete(cacheKey);
+        return null;
+    }
+    return cached.tracks;
+}
+
+/* ============================
+   批量获取歌曲详情
+   歌单详情接口只返回前几首歌，这里根据完整 trackIds 分块并行补全
+   ============================ */
+async function fetchTracksByIds(trackIds, knownTracks = []) {
+    const songsById = new Map(knownTracks.map(s => [s.id, s]));
+    const missingIds = trackIds.filter(id => !songsById.has(id));
+    if (missingIds.length === 0) return knownTracks;
+
+    // 每批500首，避免 URL 过长；分块并行请求，减少串行等待
+    const BATCH_SIZE = 500;
+    const batches = [];
+    for (let i = 0; i < missingIds.length; i += BATCH_SIZE) {
+        batches.push(missingIds.slice(i, i + BATCH_SIZE));
+    }
+    const results = await Promise.all(
+        batches.map(ids => apiFetch('/song/detail', { ids: ids.join(',') }))
+    );
+    results.forEach(data => {
+        if (data.code === 200 && data.songs) data.songs.forEach(s => songsById.set(s.id, s));
+    });
+
+    // 按歌单原始顺序返回，避免接口返回顺序不一致
+    return trackIds.map(id => songsById.get(id)).filter(Boolean);
+}
+
+/* ============================
    打开网易云歌单/专辑详情
    调用API获取歌单详情和歌曲列表
    ============================ */
@@ -717,10 +760,12 @@ async function openNeteasePlaylistDetail(id, type, source = 'playlists') {
     let playlist = null;
     if (type === 'playlist') {
         const data = await apiFetch('/playlist/detail', { id });
+        if (state.viewingPlaylistId !== id) return; // 已返回或打开了其他歌单
         if (data.code === 200 && data.playlist) playlist = data.playlist;
     } else {
         // 专辑详情
         const data = await apiFetch('/album', { id });
+        if (state.viewingPlaylistId !== id) return;
         if (data.code === 200 && data.songs) {
             playlist = { name: data.album?.name || '专辑', coverImgUrl: data.album?.picUrl, tracks: data.songs, trackIds: data.songs.map(s => s.id) };
         }
@@ -734,43 +779,57 @@ async function openNeteasePlaylistDetail(id, type, source = 'playlists') {
     if (playlist.coverImgUrl) { coverEl.style.backgroundImage = `url('${playlist.coverImgUrl}?param=300y300')`; coverEl.innerHTML = ''; }
     else { coverEl.style.backgroundImage = 'none'; coverEl.innerHTML = '<svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M15 6H3v2h12V6zm0 4H3v2h12v-2zM3 16h8v-2H3v2zM17 6v8.18c-.31-.11-.65-.18-1-.18-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3V8h3V6h-5z"/></svg>'; }
 
-    // 获取歌曲详情（API可能只返回trackIds，需要批量查询）
     const trackIds = (playlist.trackIds || []).map(t => t.id !== undefined ? t.id : t);
-    let tracks = playlist.tracks || [];
+    const partialTracks = playlist.tracks || [];
+    const cacheKey = `${type}_${id}`;
+    const cachedTracks = getCachedPlaylistTracks(cacheKey);
+    let currentTracks = cachedTracks || partialTracks;
 
-    // 如果trackIds数量大于tracks，需要批量请求歌曲详情（每批500首）
-    if (trackIds.length > tracks.length) {
-        tracks = [];
-        const batchSize = 50;
-        for (let i = 0; i < trackIds.length; i += batchSize) {
-            const batch = trackIds.slice(i, i + batchSize);
-            const ids = batch.join(',');
-            const songData = await apiFetch('/song/detail', { ids });
-            if (songData.code === 200 && songData.songs) tracks.push(...songData.songs);
-        }
-    }
-
-    if (tracks.length === 0) { detail.innerHTML = '<div class="empty-state"><p>歌单为空</p></div>'; return; }
+    // 用事件委托处理点击播放，避免为上千首歌逐个绑定监听
+    detail.onclick = async (e) => {
+        const item = e.target.closest('.music-item');
+        if (!item) return;
+        state.playQueue = currentTracks.map(s => ({ id: s.id, title: s.name, artist: (s.ar || []).map(a => a.name).join(' / '), coverUrl: s.al && s.al.picUrl ? s.al.picUrl + '?param=100y100' : null, neteaseId: s.id }));
+        const queueSong = state.playQueue.find(s => s.neteaseId === parseInt(item.dataset.id));
+        if (queueSong) await playSong(queueSong);
+    };
 
     // 渲染歌曲列表（使用懒加载封面）
-    detail.innerHTML = tracks.map(s => {
-        const artists = (s.ar || []).map(a => a.name).join(' / ');
-        const coverUrl = s.al && s.al.picUrl ? s.al.picUrl + '?param=100y100' : null;
-        const isPlaying = state.currentSong?.neteaseId === s.id || state.currentSong?.id === s.id;
-        return `<div class="music-item ${isPlaying ? 'playing' : ''}" data-id="${s.id}" data-name="${s.name}" data-artist="${artists}" data-cover="${coverUrl || ''}"><div class="cover">${coverUrl ? `<img data-src="${coverUrl}">` : '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55C7.79 13 6 14.79 6 17s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>'}</div><div class="info"><div class="title">${s.name}</div><div class="artist">${artists}</div></div><div class="playing-indicator"><span></span><span></span><span></span></div></div>`;
-    }).join('');
+    const renderTracks = () => {
+        if (currentTracks.length === 0) { detail.innerHTML = '<div class="empty-state"><p>歌单为空</p></div>'; return; }
+        detail.innerHTML = currentTracks.map(s => {
+            const artists = (s.ar || []).map(a => a.name).join(' / ');
+            const coverUrl = s.al && s.al.picUrl ? s.al.picUrl + '?param=100y100' : null;
+            const isPlaying = state.currentSong?.neteaseId === s.id || state.currentSong?.id === s.id;
+            return `<div class="music-item ${isPlaying ? 'playing' : ''}" data-id="${s.id}" data-name="${s.name}" data-artist="${artists}" data-cover="${coverUrl || ''}"><div class="cover">${coverUrl ? `<img data-src="${coverUrl}">` : '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55C7.79 13 6 14.79 6 17s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>'}</div><div class="info"><div class="title">${s.name}</div><div class="artist">${artists}</div></div><div class="playing-indicator"><span></span><span></span><span></span></div></div>`;
+        }).join('');
+        setupLazyCoverLoading(detail);
+        updatePlayingState();
+    };
 
-    // 设置封面懒加载
-    setupLazyCoverLoading(detail);
+    // 缓存命中，或详情接口已返回完整歌曲：直接渲染
+    if (currentTracks.length > 0 || trackIds.length === 0) {
+        renderTracks();
+    }
 
-    // 绑定点击播放事件
-    detail.querySelectorAll('.music-item').forEach(item => {
-        item.addEventListener('click', async () => {
-            state.playQueue = tracks.map(s => ({ id: s.id, title: s.name, artist: (s.ar || []).map(a => a.name).join(' / '), coverUrl: s.al && s.al.picUrl ? s.al.picUrl + '?param=100y100' : null, neteaseId: s.id }));
-            const queueSong = state.playQueue.find(s => s.neteaseId === parseInt(item.dataset.id));
-            await playSong(queueSong);
-        });
-    });
+    // 歌单详情接口只返回前几首歌，补全剩余歌曲
+    if (trackIds.length > partialTracks.length && !cachedTracks) {
+        // 先展示已经拿到的前几首，再异步加载剩余歌曲
+        if (currentTracks.length > 0) {
+            detail.insertAdjacentHTML('beforeend', '<div class="search-loading">正在加载剩余歌曲...</div>');
+        }
+        const fullTracks = await fetchTracksByIds(trackIds, partialTracks);
+        if (state.viewingPlaylistId !== id) return; // 用户已返回或打开了其他歌单
+        currentTracks = fullTracks;
+        // 全部歌曲都拿到才缓存，避免缓存不完整的数据
+        if (fullTracks.length >= trackIds.length) {
+            playlistTracksCache.set(cacheKey, { tracks: fullTracks, savedAt: Date.now() });
+        }
+        renderTracks();
+        if (fullTracks.length < trackIds.length) {
+            detail.insertAdjacentHTML('beforeend', `<div class="search-loading">部分歌曲加载失败，已显示 ${fullTracks.length} / ${trackIds.length} 首</div>`);
+        }
+    }
 }
 
 /* ============================
@@ -995,6 +1054,7 @@ async function doLogout() {
     state.neteaseRecommendedPlaylists = [];
     state.neteaseRadarPlaylists = [];
     clearDailyCache();
+    playlistTracksCache.clear();
     renderUserStatus();
     renderNeteasePlaylists();
     renderSidebarPlaylists();
