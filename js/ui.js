@@ -223,15 +223,14 @@ export function switchTab(tab) {
     document.querySelectorAll('.nav-item[data-tab]').forEach(n => n.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     // ---- 特殊标签页处理 ----
-    // 切换到歌单页时，重置为网格视图（退出详情页）
+    // 切换到歌单页时，重置为网格视图（退出详情页），解决的是详情页 → 切别的标签 → 切回歌单时任显示歌单详情的问题。
     if (tab === 'playlists') {
         state.viewingPlaylistId = null;
-        // TODO: 歌单相关功能待实现
-        // document.getElementById('playlistGridView').style.display = 'block';
-        // document.getElementById('playlistDetailView').style.display = 'none';
-        // document.getElementById('playlistHeader').style.display = 'flex';
-        // document.getElementById('playlistTabs').style.display = 'flex';
-        // renderNeteasePlaylists();
+        document.getElementById('playlistGridView').style.display = 'block';
+        document.getElementById('playlistDetailView').style.display = 'none';
+        document.getElementById('playlistHeader').style.display = 'flex';
+        document.getElementById('playlistTabs').style.display = 'flex';
+        renderNeteasePlaylists();
     }
     // 切换到每日推荐时，加载推荐歌曲
     if (tab === 'daily') {
@@ -595,7 +594,7 @@ async function openNeteasePlaylistDetail(id, type) {
     // 如果trackIds数量大于tracks，需要批量请求歌曲详情（每批500首）
     if (trackIds.length > tracks.length) {
         tracks = [];
-        const batchSize = 500;
+        const batchSize = 50;
         for (let i = 0; i < trackIds.length; i += batchSize) {
             const batch = trackIds.slice(i, i + batchSize);
             const ids = batch.join(',');
