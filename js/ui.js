@@ -11,7 +11,7 @@ import {
     apiFetch, loginWithPhone, sendIdentifyCode, loginWithIdentifyCode,
     fetchUserInfo, logout, startQrLogin, stopQrLogin,
     searchMusic, getDailyRecommend, getUserPlayLists, getUserAlbums,
-    renderUserStatus, updateLoginUI
+    renderUserStatus, updateLoginUI, getRadarPlaylists, getRecommendedPlaylists
 } from './api.js';
 import {
     playSong, updatePlayingState, setupPlayerBar, setupControls,
@@ -236,6 +236,10 @@ export function switchTab(tab) {
     if (tab === 'daily') {
         loadDailyRecommend();
     }
+    // 切换到发现页时，加载雷达歌单和推荐歌单
+    if (tab === 'discovering') {
+        loadDiscoverData();
+    }
     // ---- 激活对应的导航按钮和内容区 ----
     if (tab === 'settings') {
         // 设置页没有导航按钮，直接激活内容区
@@ -402,7 +406,22 @@ export function renderMusicList() {
 document.getElementById('searchInput').addEventListener('input', renderMusicList);
 /* ============================
    每日推荐
+   参考收藏歌单详情页的流程：获取数据 → 渲染歌曲列表（封面懒加载）→ 点击播放
    ============================ */
+// 每日推荐按"6:00 刷新"划分自然日，同一天内重复进入不重复请求
+const DAILY_REFRESH_HOUR = 6;
+let dailyCache = { key: '', songs: [] };
+
+// 计算当前每日推荐对应的日期（凌晨6点前仍算前一天）
+function getDailyCacheKey() {
+    const d = new Date();
+    if (d.getHours() < DAILY_REFRESH_HOUR) d.setDate(d.getDate() - 1);
+    return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+}
+
+// 清空每日推荐缓存（退出登录/切换账号时调用，避免串用上一个账号的数据）
+function clearDailyCache() { dailyCache = { key: '', songs: [] }; }
+
 async function loadDailyRecommend() {
     const list = document.getElementById('dailyList');
     const info = document.getElementById('dailyInfo');
@@ -410,21 +429,45 @@ async function loadDailyRecommend() {
 
     // 显示今日日期
     info.innerHTML = `<h2>${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日 每日推荐</h2><p>根据你的口味生成，每天6:00更新</p>`;
-    list.innerHTML = '<div class="search-loading">加载中...</div>';
-    const songs = await getDailyRecommend();
-    // 未登录或无数据时提示
-    if (songs.length === 0) { list.innerHTML = `<div class="empty-state"><svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM9 10H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/></svg><p>请先登录以获取每日推荐</p></div>`; return; }
+
+    // 未登录时直接提示，不发送无效请求
+    if (!state.user) {
+        list.innerHTML = `<div class="empty-state"><svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM9 10H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/></svg><p>请先登录以获取每日推荐</p></div>`;
+        return;
+    }
+
+    // 同一天内复用缓存，避免切标签重复请求
+    const key = getDailyCacheKey();
+    let songs = dailyCache.key === key ? dailyCache.songs : null;
+    if (!songs) {
+        list.innerHTML = '<div class="search-loading">加载中...</div>';
+        songs = await getDailyRecommend();
+        // 只缓存有数据的结果，失败时下次进入会重试
+        if (songs.length > 0) dailyCache = { key, songs };
+    }
+
+    if (songs.length === 0) {
+        list.innerHTML = `<div class="empty-state"><svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM9 10H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/></svg><p>暂无每日推荐，请稍后重试</p></div>`;
+        return;
+    }
+
+    // 渲染歌曲列表（封面先放 data-src，滚动到可视区域再加载）
     list.innerHTML = songs.map(s => {
         const artists = (s.ar || []).map(a => a.name).join(' / ');
-        const coverUrl = s.al && s.al.picUrl ? s.al.picUrl + '?param=800y800' : null;
-        return `<div class="music-item" data-id="${s.id}" data-name="${s.name}" data-artist="${artists}" data-cover="${coverUrl || ''}"><div class="cover">${coverUrl ? `<img src="${coverUrl}">` : `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55C7.79 13 6 14.79 6 17s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>`}</div><div class="info"><div class="title">${s.name}</div><div class="artist">${artists}</div></div><div class="playing-indicator"><span></span><span></span><span></span></div></div>`;
+        const coverUrl = s.al && s.al.picUrl ? s.al.picUrl + '?param=300y300' : null;
+        const isPlaying = state.currentSong?.neteaseId === s.id || state.currentSong?.id === s.id;
+        return `<div class="music-item ${isPlaying ? 'playing' : ''}" data-id="${s.id}" data-name="${s.name}" data-artist="${artists}" data-cover="${coverUrl || ''}"><div class="cover">${coverUrl ? `<img data-src="${coverUrl}">` : `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55C7.79 13 6 14.79 6 17s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>`}</div><div class="info"><div class="title">${s.name}</div><div class="artist">${artists}</div></div><div class="playing-indicator"><span></span><span></span><span></span></div></div>`;
     }).join('');
-    //给每首歌加点击事件
+
+    // 封面懒加载（与收藏歌单详情页一致）
+    setupLazyCoverLoading(list);
+
+    // 点击播放：以当前每日推荐列表作为播放队列
     list.querySelectorAll('.music-item').forEach(item => {
         item.addEventListener('click', async () => {
-            state.playQueue = songs.map(s => ({ id: s.id, title: s.name, artist: (s.ar || []).map(a => a.name).join(' / '), coverUrl: s.al && s.al.picUrl ? s.al.picUrl + '?param=800y800' : null, neteaseId: s.id }));
+            state.playQueue = songs.map(s => ({ id: s.id, title: s.name, artist: (s.ar || []).map(a => a.name).join(' / '), coverUrl: s.al && s.al.picUrl ? s.al.picUrl + '?param=300y300' : null, neteaseId: s.id }));
             const queueSong = state.playQueue.find(s => s.neteaseId === parseInt(item.dataset.id));
-            await playSong(queueSong);
+            if (queueSong) await playSong(queueSong);
         });
     });
     updatePlayingState();
@@ -460,6 +503,12 @@ export function setupPlaylists() {
 //歌单详情页的返回
 function closePlaylistDetail() {
     state.viewingPlaylistId = null;
+    // 从发现页打开的歌单，返回时回到发现页，而不是收藏歌单页
+    if (state.playlistDetailSource === 'discovering') {
+        state.playlistDetailSource = 'playlists';
+        switchTab('discovering');
+        return;
+    }
     // 恢复网格视图
     document.getElementById('playlistGridView').style.display = 'block';
     document.getElementById('playlistDetailView').style.display = 'none';
@@ -472,20 +521,117 @@ function closePlaylistDetail() {
    登录后调用，获取用户的歌单列表
    ============================ */
 export async function loadNeteasePlaylists() {
-    //没有登录时 清空歌单和专辑列表
-    if (!state.user){
+    //没有登录时 清空歌单、专辑、推荐和雷达数据，并恢复空状态
+    if (!state.user) {
         state.neteasePlaylists = [];
         state.neteaseAlbums = [];
+        state.neteaseRecommendedPlaylists = [];
+        state.neteaseRadarPlaylists = [];
+        renderNeteasePlaylists();
+        renderSidebarPlaylists();
+        renderRecommendedPlaylists();
+        renderRadarPlaylists();
         return;
-    };
-    state.neteasePlaylists = await getUserPlayLists(state.user.userId);
-    state.neteaseAlbums = await getUserAlbums(state.user.userId);
+    }
+
+    // 并行请求，减少登录后和页面初始化时的等待时间
+    const [playlists, albums, recommended, radar] = await Promise.all([
+        getUserPlayLists(state.user.userId),
+        getUserAlbums(state.user.userId),
+        getRecommendedPlaylists(state.user.userId),
+        getRadarPlaylists(state.user.userId)
+    ]);
+    state.neteasePlaylists = playlists;
+    state.neteaseAlbums = albums;
+    state.neteaseRecommendedPlaylists = recommended;
+    state.neteaseRadarPlaylists = radar;
+
     //渲染歌单和专辑到UI
     renderNeteasePlaylists();
     //渲染侧边栏歌单列表
     renderSidebarPlaylists();
+    //渲染发现页的雷达歌单和推荐歌单
+    renderRadarPlaylists();
+    renderRecommendedPlaylists();
+}
+/* ============================
+   渲染歌单卡片网格
+   推荐歌单、雷达歌单共用；卡片结构和收藏歌单保持一致
+   ============================ */
+function renderPlaylistCardGrid(grid, items, loginTip) {
+    if (!state.user) {
+        grid.innerHTML = `<div class="empty-state"><p>${loginTip}</p></div>`;
+        return;
+    }
+    if (!items || items.length === 0) {
+        grid.innerHTML = '<div class="empty-state"><p>暂无内容</p></div>';
+        return;
+    }
+    // 网易云歌单接口返回封面字段为 picUrl，收藏歌单接口为 coverImgUrl，这里统一处理
+    grid.innerHTML = items.map(p => {
+        const cover = p.picUrl || p.coverImgUrl;
+        const coverUrl = cover ? cover + '?param=300y300' : null;
+        return `<div class="playlist-card" data-id="${p.id}" data-type="playlist"><div class="card-cover" ${coverUrl ? `style="background-image:url('${coverUrl}')"` : ''}>${!coverUrl ? '<svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M15 6H3v2h12V6zm0 4H3v2h12v-2zM3 16h8v-2H3v2zM17 6v8.18c-.31-.11-.65-.18-1-.18-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3V8h3V6h-5z"/></svg>' : ''}</div><div class="card-info"><div class="name">${p.name}</div><div class="count">${p.trackCount || 0} 首歌曲</div></div></div>`;
+    }).join('');
+
+    // 点击卡片：歌单详情视图位于歌单页内，所以先切到歌单页再打开详情，并记录来源用于返回
+    grid.querySelectorAll('.playlist-card').forEach(card => {
+        card.addEventListener('click', () => {
+            switchTab('playlists');
+            openNeteasePlaylistDetail(parseInt(card.dataset.id), 'playlist', 'discovering');
+        });
+    });
+}
+/* ============================
+   渲染推荐歌单网格
+   ============================ */
+function renderRecommendedPlaylists() {
+    renderPlaylistCardGrid(
+        document.getElementById('recommendedPlaylistsGrid'),
+        state.neteaseRecommendedPlaylists,
+        '请先登录以查看推荐歌单'
+    );
 }
 
+/* ============================
+   渲染雷达歌单网格
+   ============================ */
+function renderRadarPlaylists() {
+    renderPlaylistCardGrid(
+        document.getElementById('radarPlaylistsGrid'),
+        state.neteaseRadarPlaylists,
+        '请先登录以查看雷达歌单'
+    );
+}
+
+/* ============================
+   加载发现页数据（雷达歌单 + 推荐歌单）
+   进入发现页时调用；已有数据时直接渲染，避免每次切换都重新请求
+   ============================ */
+async function loadDiscoverData() {
+    const radarGrid = document.getElementById('radarPlaylistsGrid');
+    const recGrid = document.getElementById('recommendedPlaylistsGrid');
+
+    if (!state.user) {
+        renderRadarPlaylists();
+        renderRecommendedPlaylists();
+        return;
+    }
+
+    const needRadar = state.neteaseRadarPlaylists.length === 0;
+    const needRecommended = state.neteaseRecommendedPlaylists.length === 0;
+    if (needRadar) radarGrid.innerHTML = '<div class="search-loading">加载中...</div>';
+    if (needRecommended) recGrid.innerHTML = '<div class="search-loading">加载中...</div>';
+
+    const [radar, recommended] = await Promise.all([
+        needRadar ? getRadarPlaylists(state.user.userId) : Promise.resolve(state.neteaseRadarPlaylists),
+        needRecommended ? getRecommendedPlaylists(state.user.userId) : Promise.resolve(state.neteaseRecommendedPlaylists)
+    ]);
+    state.neteaseRadarPlaylists = radar;
+    state.neteaseRecommendedPlaylists = recommended;
+    renderRadarPlaylists();
+    renderRecommendedPlaylists();
+}
 /* ============================
    渲染歌单网格
    根据当前标签（local/created/collected/album）显示不同内容
@@ -555,8 +701,9 @@ function renderSidebarPlaylists() {
    打开网易云歌单/专辑详情
    调用API获取歌单详情和歌曲列表
    ============================ */
-async function openNeteasePlaylistDetail(id, type) {
+async function openNeteasePlaylistDetail(id, type, source = 'playlists') {
     state.viewingPlaylistId = id;
+    state.playlistDetailSource = source;
     // 切换视图：隐藏网格，显示详情
     document.getElementById('playlistGridView').style.display = 'none';
     document.getElementById('playlistDetailView').style.display = 'block';
@@ -845,9 +992,16 @@ async function doLogout() {
     await logout();
     state.neteasePlaylists = [];
     state.neteaseAlbums = [];
+    state.neteaseRecommendedPlaylists = [];
+    state.neteaseRadarPlaylists = [];
+    clearDailyCache();
     renderUserStatus();
     renderNeteasePlaylists();
     renderSidebarPlaylists();
+    renderRecommendedPlaylists();
+    renderRadarPlaylists();
+    // 如果当前停留在每日推荐页，同步切换为未登录提示
+    if (document.getElementById('tabDaily').classList.contains('active')) loadDailyRecommend();
     alert('已退出登录');
 }
 

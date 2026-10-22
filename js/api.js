@@ -328,6 +328,33 @@ export async function getUserAlbums(uid) {
 }
 
 /* ============================
+   获取推荐的歌单列表
+   ============================ */
+export async function getRecommendedPlaylists(uid) {
+    try {
+        const data = await apiFetch('/personalized');
+        if (data.code === 200 && data.result) return data.result;
+    } catch {}
+    return [];
+}
+/* ============================
+   获取雷达歌单列表
+   /recommend/resource 会返回多个每日推荐歌单，这里只保留“私人雷达”
+   ============================ */
+const PRIVATE_RADAR_ID = 3136952023; // “私人雷达”固定歌单ID（名称匹配作为兜底）
+export async function getRadarPlaylists(uid) {
+    try {
+        const data = await apiFetch('/recommend/resource');
+        if (data.code === 200 && data.recommend) {
+            const privateRadar = data.recommend.find(p =>
+                p.id === PRIVATE_RADAR_ID || (p.name && p.name.includes('私人雷达'))
+            );
+            return privateRadar ? [privateRadar] : [];
+        }
+    } catch {}
+    return [];
+}
+/* ============================
    生成头像HTML
    头像加载失败时自动隐藏图片，露出默认渐变背景
    ============================ */

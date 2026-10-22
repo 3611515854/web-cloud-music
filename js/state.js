@@ -24,6 +24,7 @@ export const state = {
     currentLyricIndex: -1,    // 当前播放到的歌词行索引（-1表示无歌词）
     previousTab: 'playlists' ,//上一个打开的标签 用于返回导航
     viewingPlaylistId: null, //当前正在查看的歌单id null表示没有进入详情页
+    playlistDetailSource: 'playlists', //打开歌单详情前所在的页面，用于详情页返回
     contextSongId: null,     // 右键菜单（更多按钮）当前操作的歌曲ID
     playMode: 0,              // 播放模式：0=顺序播放, 1=单曲循环, 2=随机播放
     playQueue: [],            // 当前播放队列（歌曲数组，播放/上一首/下一首从这里取）
@@ -36,6 +37,8 @@ export const state = {
     apiBase: localStorage.getItem('netease_api') || '',
     neteasePlaylists: [],     // 用户在网易云创建/收藏的歌单列表
     neteaseAlbums: [],        // 用户在网易云收藏的专辑列表
+    neteaseRecommendedPlaylists: [], // 网易云推荐的歌单列表
+    neteaseRadarPlaylists: [], // 网易云雷达歌单列表（只保留私人雷达）
     currentPlaylistTab: 'created', // 当前歌单标签：created/collected/album/local
     settings: {
         fontSize: 14,         // 全局字号（px），可在设置中调整

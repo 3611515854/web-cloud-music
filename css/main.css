@@ -391,6 +391,26 @@
     gap: 16px;
 }
 
+/* 雷达歌单 / 推荐歌单网格：与歌单网格共用列宽，卡片样式复用 .playlist-card */
+.radar-playlists-grid,
+.recommended-playlists-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+}
+
+/* 发现页分块标题（雷达歌单 / 推荐歌单） */
+.section-title {
+    margin: 24px 0 16px;
+    font-size: 1.05em;
+    font-weight: 600;
+}
+
+/* 第一个分块标题紧跟页面标题，不再叠加顶部间距 */
+#tabDiscovering .section-title:first-of-type {
+    margin-top: 0;
+}
+
 /* 单个歌单卡片 */
 .playlist-card {
     background: var(--bg-secondary);

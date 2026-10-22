@@ -41,12 +41,19 @@
                         </svg>
                         <span>导入音乐</span>
                     </button>
+                    <!--发现-->
+                    <button class="nav-item " data-tab="discovering">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55C7.79 13 6 14.79 6 17s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                        </svg>
+                        <span>发现</span>
+                    </button>
                     <!--歌单-->
                     <button class="nav-item active" data-tab="playlists">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M15 6H3v2h12V6zm0 4H3v2h12v-2zM3 16h8v-2H3v2zM17 6v8.18c-.31-.11-.65-.18-1-.18-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3V8h3V6h-5z"/>
                         </svg>
-                        <span>歌单</span>
+                        <span>收藏歌单</span>
                     </button>
                     <!--今日推荐-->
                     <button class="nav-item" data-tab="daily">
@@ -177,6 +184,22 @@
                         <div class="import-list" id="importList"></div>
                     </div>
                 </div>
+                <!--发现-->
+                <div class="tab-content" id="tabDiscovering">
+                    <div class="content-header">
+                        <h1>发现</h1>
+                    </div>
+                    <!--雷达-->
+                    <h2 class="section-title">雷达歌单</h2>
+                    <div id="radarPlaylistGridView">
+                        <div class="radar-playlists-grid" id="radarPlaylistsGrid"></div>
+                    </div>
+                    <!--推荐歌单-->
+                    <h2 class="section-title">推荐歌单</h2>
+                    <div id="recommendedPlaylistGridView">
+                        <div class="recommended-playlists-grid" id="recommendedPlaylistsGrid"></div>
+                    </div>
+                </div>
                 <!--歌单-->
                 <div class="tab-content active" id="tabPlaylists">
                     <div class="content-header" id="playlistHeader">
@@ -225,7 +248,7 @@
                 </div>
                 <!--每日推荐-->
                 <div class="tab-content" id="tabDaily">
-                    <div class="content-header" id="playlistHeader">
+                    <div class="content-header">
                         <h1>每日推荐</h1>
                     </div>
                     <div class="daily-info" id="dailyInfo"></div>
